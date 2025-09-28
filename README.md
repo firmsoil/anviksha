@@ -97,11 +97,11 @@ python main.py
 ├── main.py                 # Core conversational agent and query processing logic
 ├── load_data.py            # Sample data insertion scripts for MongoDB
 ├── setup.sh                # Automated environment setup bash script
-├── cicd_api/               # Modular CI/CD analytics package
+├── cicd_api/               # Modular CICD analytics package
 │   ├── __init__.py
-│   ├── api.py              # API interfaces for CI/CD analytics
+│   ├── api.py              # API interfaces for CICD analytics
 │   ├── events_handler.py   # Event processing for pipeline event documents
-│   ├── pipeline_generator.py # MongoDB pipeline builders for CI/CD queries
+│   ├── pipeline_generator.py # MongoDB pipeline builders for CICD queries
 │   ├── summaries.py        # Business summary and explanation generation
 │   └── utils.py            # Helper utilities and validation functions
 ├── README.md               # This documentation file
