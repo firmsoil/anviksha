@@ -12,9 +12,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port the app runs on (Cloud Run defaults to $PORT, but 8080 is a common standard)
+# Expose the port the app runs on (standardizing on 8080)
 ENV PORT 8080
 EXPOSE 8080
 
-# Run the application using Uvicorn. The 'api_main:app' assumes your FastAPI app is named 'app' in 'api_main.py'
-CMD ["uvicorn", "api_main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Run the application using Uvicorn, pointing to the 'app' object 
+# inside the 'api_main.py' module of the 'cicd_api' package.
+CMD ["uvicorn", "cicd_api.api_main:app", "--host", "0.0.0.0", "--port", "8080"]
