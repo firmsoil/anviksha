@@ -22,6 +22,7 @@ Transform your software delivery data/events into actionable business insights w
   - [Build Durations for Failed Builds](#query-2-build-durations-for-failed-builds)
 - [Project Structure](#project-structure)
 - [Technology Stack](#technology-stack)
+- [References](#References)
 - [Contributing](#contributing)
 - [License](#license)
 
