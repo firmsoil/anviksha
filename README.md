@@ -9,6 +9,10 @@ Transform your software delivery data/events into actionable business insights w
 
 ---
 
+![Screenshot](images/Anviksha.png)
+
+---
+
 ## Table of Contents
 - [Overview](#overview)
 - [Key Features](#key-features)
