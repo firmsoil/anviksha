@@ -18,8 +18,6 @@ Transform your software delivery data/events into actionable business insights w
 - [Key Features](#Key-Features)
 - [Installation & Local Setup (macOS)](#Installation-&-Local-Setup-(macOS))
 - [Example Use Cases](#Example-Use-Cases)
-  - [Query 1: CICD Pipeline Success Rates](#Query-1:-CICD-Pipeline-Success-Rates)
-  - [Query 2: Build Durations for Failed Builds](#Query-2:-Build-Durations-for-Failed-Builds)
 - [Project Structure](#Project-Structure)
 - [Technology Stack](#Technology-Stack)
 - [References](#References)
