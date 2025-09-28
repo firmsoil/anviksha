@@ -15,24 +15,31 @@ services:
     build: . # Build using the Dockerfile in the current directory
     container_name: fastapi_analytics
     ports:
-      - "8080:8080" # 👈 CORRECTED PORT MAPPING
+      - "8080:8080" # CORRECTED PORT MAPPING to match Dockerfile
     depends_on:
       - mongo # Ensure mongo starts before the app
     environment:
       - MONGO_URI=mongodb://mongo:27017/
       - DB_NAME=cicd_db
+      # This line often causes issues if not properly set/escaped
       - OPENAI_API_KEY=${OPENAI_API_KEY} 
 
-volumes:
+# ----------------- Line 27: The top-level 'volumes' section -----------------
+volumes: 
+# ----------------- Line 28: The definition of the named volume (2 spaces) ---
   mongo-data: 
 ```
 
-## 🚀 Step 3: Clean Up, Rebuild, and Start
+**Common Mistake to Fix:**
 
-We must remove the failed container, rebuild the image with the correct `CMD`, and restart the services.
+* **Make sure line 28 (`mongo-data:`) is indented exactly two spaces from the `volumes:` line (Line 27).** If it has a hyphen (`-`) or an incorrect number of spaces, it will fail.
+* **Check for Tab Characters:** If you edited the file, ensure you didn't use any hard tab characters for indentation.
+
+### Step 2: Clean Up, Rebuild, and Start
+
+Once you have verified and saved the `docker-compose.yml` file with correct YAML syntax, follow the steps to clean up and restart.
 
 1.  **Stop and Remove Existing Services:**
-    This command stops the running MongoDB service and removes the remnants of the failed `fastapi_analytics` container.
 
     ```bash
     docker compose down
@@ -41,27 +48,11 @@ We must remove the failed container, rebuild the image with the correct `CMD`, a
 2.  **Ensure OpenAI Key is Exported:**
 
     ```bash
+    # IMPORTANT: Ensure this variable is set in the shell where you run docker compose
     export OPENAI_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     ```
 
 3.  **Rebuild and Start Services:**
-    The `--build` flag is essential to use the newly edited `Dockerfile`.
 
     ```bash
     docker compose up --build -d
-    ```
-
-4.  **Verify Status:**
-    Check that both containers are now running.
-
-    ```bash
-    docker compose ps
-    ```
-    * **Expected Result:** Both `mongodb_cicd` and `fastapi_analytics` should show `Status: running`.
-
-5.  **Load Sample Data (Success Execution):**
-    The container is running, so now the `docker exec` command will succeed.
-
-    ```bash
-    docker exec fastapi_analytics python load_data.py
-    
