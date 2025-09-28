@@ -124,6 +124,70 @@ python main.py
 
 ---
 
+## References 
+
+- **MongoDB, Inc. (2025). MongoDB Atlas Architecture Center.**  
+  Correlates to data layer setup, Atlas cluster provisioning, and resilient storage accessed by the pipeline executor service in `main.py`.
+
+- **MongoDB, Inc. (2024). MongoDB Architecture Guide.**  
+  Foundational for schema design and indexing decisions impacting query performance in aggregation pipeline generation functions in `main.py`.
+
+- **Google Cloud. (2022). Reference Architectures for MongoDB Atlas on Google Cloud.**  
+  Underpins deployment design using Kubernetes/OpenShift referenced in `setup.sh` and microservice orchestration around the conversational API.
+
+- **MongoDB, Inc. (2025). MongoDB Aggregation Framework.**  
+  Directly informs pipeline generation and execution logic in `main.py`’s `generate_pipeline()` and `execute_pipeline()` functions.
+
+- **MongoDB, Inc. (2025). MongoDB Change Streams.**  
+  Relevant for real-time update handling and event-driven analytics components implied in the architecture appendix.
+
+- **OpenAI. (2025). OpenAI API Documentation.**  
+  Integral to the AI orchestration logic invoking LLM completions within `main.py`, facilitating natural language to pipeline translation.
+
+- **Google Cloud. (2025). Google Vertex AI Documentation.**  
+  Supports the AI model serving and orchestration infrastructure described in the architecture.
+
+- **HashiCorp. (n.d.). Vault Kubernetes Integration.**  
+  Security reference for secret management and vault integration operations mentioned in the security appendix.
+
+- **Istio. (n.d.). Mutual TLS (mTLS) Overview.**  
+  Basis for securing service mesh communication, referenced in setup scripts and deployment practices (`setup.sh`).
+
+- **MongoDB, Inc. (2025). MongoDB Security Documentation.**  
+  Guides security best practices for API and database level controls seen in authentication and RBAC implementation context.
+
+- **Prometheus. (n.d.). Prometheus Monitoring System.**  
+  Used in observability for monitoring microservices and API telemetry as noted in system monitoring descriptions.
+
+- **ACL Anthology. (2021). Hybrid NLP: Combining Rule-based and Machine Learning.**  
+  Academic grounding for the hybrid pipeline generation approach in `main.py`.
+
+- **MongoDB, Inc. (2025). MongoDB Query for Date Range.**  
+  Influences correct BSON date filtering implemented in the pipeline generation function.
+
+- **OpenAI. (2025). OpenAI Summarization Example.**  
+  Supports the summarization feature post pipeline execution in `main.py`.
+
+- **MongoDB, Inc. (2025). Simplify AI-Driven Data Connectivity With MongoDB and MCP Toolbox.**  
+  Provides reference architecture and real-world use cases guiding integration design; relevant to system modularity and data source abstraction patterns.
+
+- **MongoDB, Inc. (2025). Announcing the MongoDB MCP Server.**  
+  Key reference for multi-data source support and AI agent interaction capability, reflected in modular tool loading and extensibility in codebase.
+
+- **Google. (2025). MongoDB | MCP Toolbox for Databases.**  
+  Documentation outlines connector schema and integration points mirrored in `main.py` tool and pipeline generation logic.
+
+- **FlowHunt. (2025). MongoDB MCP Server - FlowHunt.**  
+  Example implementation of MCP server that inspired design of the backend microservices.
+
+- **Glama.ai. (2025). MongoDB MCP Server.**  
+  Demonstrates operational MCP MongoDB tooling pattern influencing our API endpoint and query executor logic.
+
+- **Google Cloud. (2025). MongoDB Connector for Google Cloud Integration.**  
+  Correlates with infrastructure provisioning and integration validation activities covered in `setup.sh` and deployment configurations.
+
+---
+
 ## Contributing
 
 We warmly welcome contributions from the community!
