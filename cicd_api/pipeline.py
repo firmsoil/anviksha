@@ -5,7 +5,8 @@ import dateparser
 from typing import List, Dict, Any, Tuple, Optional
 from datetime import datetime
 from bson import ObjectId
-from openai import OpenAI # Import OpenAI
+from openai import OpenAI
+import logging # <-- ADDED logging import
 
 # Initialize the OpenAI client (will read key from environment)
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -26,9 +27,6 @@ Fields:
 def generate_pipeline(query: str, history: List[Dict[str, str]]) -> Tuple[List[Dict[str, Any]], str]:
     """
     Calls the LLM to generate a MongoDB aggregation pipeline from the user query.
-    
-    In a real system, this would use a complex prompt. For this fix, we are 
-    using a simplified prompt that requires a structured JSON response.
     """
     full_prompt = (
         f"You are a MongoDB pipeline generator. Convert the following user query "
@@ -103,11 +101,7 @@ def summarize_results(results: List[Dict[str, Any]], query: str, pipeline_explan
     else:
         return f"Mock summary (OpenAI Key Missing). Raw result count: {len(results)}"
 
-# --- Existing non-LLM utility functions (retained for completeness) ---
-
-# NOTE: The helper functions like extract_event_type, extract_object_id, and 
-# extract_nlp_date are no longer used by the LLM-based generate_pipeline, but 
-# are kept below for reference if you switch back to a rule-based system.
+# --- Utility functions (Corrected) ---
 
 def extract_event_type(query: str) -> Optional[str]:
     match = re.search(r'pipeline events for ([\w\s\-]+)', query, re.IGNORECASE)
@@ -115,14 +109,15 @@ def extract_event_type(query: str) -> Optional[str]:
     return None
 
 def extract_object_id(query: str) -> Optional[ObjectId]:
-    match = re.search(r'ObjectId\\([\\'"]?([a-fA-F0-9]{24})[\\'"]?\\)', query)
+    # CORRECTED REGEX: Simplified to look for a 24-char hex string near 'ObjectId'
+    match = re.search(r'ObjectId[\\(]?[\\'"]?([a-fA-F0-9]{24})[\\'"]?[\\)]?', query)
     if match:
         try: return ObjectId(match.group(1))
         except Exception: return None
     return None
 
 def extract_nlp_date(query: str) -> Optional[datetime]:
-    match = re.search(r'\\b(since|after|from)\\s+([a-zA-Z0-9\\s,.\\-]+)', query, re.IGNORECASE)
+    match = re.search(r'\b(since|after|from)\s+([a-zA-Z0-9\s,.-]+)', query, re.IGNORECASE)
     if match:
         human_date = match.group(2).strip()
         dt = dateparser.parse(human_date)
