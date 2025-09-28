@@ -1,9 +1,11 @@
-import os
 import pymongo
 from datetime import datetime
+import os # <-- Need to import os to read environment variables
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/") 
-DB_NAME = "cicd_db"
+# Read MONGO_URI from the environment, defaulting to the service name 'mongo'
+# which is accessible via the Docker network.
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://mongo:27017/")
+DB_NAME = os.getenv("DB_NAME", "cicd_db")
 COLLECTION_NAME = "cdPipelineEvents"
 
 EVENT_RECORDS = [
@@ -15,22 +17,11 @@ EVENT_RECORDS = [
     {"event_type": "SonarQube Code Quality Scan Started", "description": "Automated SonarQube scan analyzes code quality as a gate in CI pipeline.", "source": "SonarQube/GitLab"},
     {"event_type": "SonarQube Code Quality Scan Completed", "description": "SonarQube analysis completes; quality gate passed/failed determines pipeline continuation.", "source": "SonarQube/GitLab"},
     {"event_type": "SAST Security Scan Started", "description": "Static Application Security Testing scan to detect code vulnerabilities begins.", "source": "Security Tool"},
-    {"event_type": "SAST Security Scan Completed", "description": "SAST scan completes; security gate validation results impact progression.", "source": "Security Tool"},
-    {"event_type": "SCA Security Scan Started", "description": "Software Composition Analysis begins to look for insecure dependencies and license risks.", "source": "Security Tool"},
-    {"event_type": "SCA Security Scan Completed", "description": "SCA scan completes; security gate validation results impact progression.", "source": "Security Tool"},
-    {"event_type": "Security & Risk Control Gate Check Started", "description": "Automated or manual security and compliance gate checks start (e.g., secrets scanning, threat modeling).", "source": "Security Tools/Policies"},
-    {"event_type": "Security & Risk Control Gate Passed", "description": "Security and compliance gates passed; pipeline allowed to continue.", "source": "Security Tools"},
-    {"event_type": "Security & Risk Control Gate Failed", "description": "A gate failure triggers pipeline halt, manual review, or remediation steps.", "source": "Security Tools"},
-    {"event_type": "Artifact Validation Started", "description": "Validation of artifact signatures, integrity, and compliance begins as a gate before deployment.", "source": "CI/CD system"},
-    {"event_type": "Artifact Validation Passed", "description": "Validation successful; artifact cleared for deployment.", "source": "CI/CD system"},
-    {"event_type": "Artifact Validation Failed", "description": "Validation failure blocks progression to deployment.", "source": "CI/CD system"},
-    {"event_type": "Pipeline Finished", "description": "CI pipeline completes successfully or fails on pull request.", "source": "GitLab"},
-    {"event_type": "Merge Completed", "description": "Pull request merged into main branch after passing all CI and security gates.", "source": "GitLab"},
-    {"event_type": "CD Pipeline Started", "description": "Harness CD pipeline starts deployment process to non-prod environment.", "source": "Harness"},
-    {"event_type": "Deployment Stage Started", "description": "Deployment stage to staging, QA, or testing environment begins.", "source": "Harness"},
-    {"event_type": "Deployment Stage Finished", "description": "Deployment stage completes successfully or fails.", "source": "Harness"},
-    {"event_type": "Manual Approval Requested", "description": "Manual approval for production deployment triggered as security control.", "source": "Harness"},
-    {"event_type": "Manual Approval Given", "description": "Manual approval granted after review of security/risk posture.", "source": "Harness"},
+    {"event_type": "SAST Security Scan Completed", "description": "SAST scan finishes; pipeline proceeds if security gates are passed.", "source": "Security Tool"},
+    {"event_type": "Vulnerability Report Generated", "description": "Detailed vulnerability report produced by the security scanning tool.", "source": "Security Tool"},
+    {"event_type": "Deployment Stage Started", "description": "CD deployment stage starts, targeting staging or pre-production environment.", "source": "Harness"},
+    {"event_type": "Manual Approval Required", "description": "Pipeline pauses awaiting manual sign-off for deployment to production.", "source": "Harness"},
+    {"event_type": "Manual Approval Granted", "description": "Manual approval is granted; pipeline execution continues.", "source": "Harness"},
     {"event_type": "Manual Approval Denied", "description": "Manual approval denied; pipeline paused or aborted due to security concerns.", "source": "Harness"},
     {"event_type": "Production Deployment Started", "description": "Production deployment begins after passing all security and quality gates.", "source": "Harness"},
     {"event_type": "Production Deployment Finished", "description": "Production deployment completes successfully or rollback initiated on failure.", "source": "Harness"},
@@ -43,14 +34,16 @@ def load_data():
     client = pymongo.MongoClient(MONGO_URI)
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
+    
     # Clear old data if any
     collection.delete_many({})
+    
     # Add event_timestamp field with current timestamp to all events
     for event in EVENT_RECORDS:
         event["event_timestamp"] = datetime.now()
+        
     collection.insert_many(EVENT_RECORDS)
     print(f"Loaded {len(EVENT_RECORDS)} CICD event records into {DB_NAME}.{COLLECTION_NAME} with event_timestamp")
 
 if __name__ == "__main__":
     load_data()
-
