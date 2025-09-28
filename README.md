@@ -14,17 +14,17 @@ Transform your software delivery data/events into actionable business insights w
 ---
 
 ## Table of Contents
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Installation & Local Setup (macOS)](#installation--local-setup-macos)
-- [Example Use Cases](#example-use-cases)
-  - [CICD Pipeline Success Rates](#query-1-cicd-pipeline-success-rates)
-  - [Build Durations for Failed Builds](#query-2-build-durations-for-failed-builds)
-- [Project Structure](#project-structure)
-- [Technology Stack](#technology-stack)
+- [Overview](#Overview)
+- [Key Features](#Key-Features)
+- [Installation & Local Setup (macOS)](#Installation-&-Local-Setup-(macOS))
+- [Example Use Cases](#Example-Use-Cases)
+  - [CICD Pipeline Success Rates](#Query-1:-CICD-Pipeline-Success-Rates)
+  - [Build Durations for Failed Builds](#Query-2:-Build-Durations-for-Failed-Builds)
+- [Project Structure](#Project-Structure)
+- [Technology Stack](#Technology-Stack)
 - [References](#References)
-- [Contributing](#contributing)
-- [License](#license)
+- [Contributing](#Contributing)
+- [License](#License)
 
 ---
 
@@ -78,7 +78,7 @@ python main.py
 
 ## Example Use Cases
 
-### Query 1: CI/CD Pipeline Success Rates
+### Query 1: CICD Pipeline Success Rates
 
     Query: "Show successful builds in last 7 days by branch"
 
