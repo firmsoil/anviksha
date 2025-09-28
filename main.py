@@ -9,7 +9,7 @@ from openai import OpenAI
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
 
-MONGO_URI = "mongodb://localhost:27017/"
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/") 
 DB_NAME = "cicd_db"
 COLLECTION_NAME = "cdPipelineEvents"
 
