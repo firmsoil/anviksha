@@ -16,7 +16,7 @@ Transform your software delivery data/events into actionable business insights w
 ## Table of Contents
 - [Overview](#Overview)
 - [Key Features](#Key-Features)
-- [Installation & Local Setup (macOS)](#Installation-&-Local-Setup-(macOS))
+- [Installation & Local Setup (macOS)](#installation--local-setup-macos)
 - [Example Use Cases](#Example-Use-Cases)
 - [Project Structure (uses sample cicd mongodb)](#Project-Structure-(uses-sample-cicd-mongodb))
 - [Technology Stack](#Technology-Stack)
