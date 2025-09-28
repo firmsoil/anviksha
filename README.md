@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![MongoDB](https://img.shields.io/badge/database-MongoDB-brightgreen)
 ![OpenAI](https://img.shields.io/badge/AI-OpenAI%20GPT--4o-orange)
-![License](https://img.shields.io/badge/license-Apache%202.0-lightgrey)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Transform your software delivery data/events into actionable business insights with natural language queries, powered by OpenAI LLMs and MongoDB aggregation frameworks.
 
