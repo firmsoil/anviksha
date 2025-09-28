@@ -14,7 +14,7 @@ Transform your software delivery data/events into actionable business insights w
 - [Key Features](#key-features)
 - [Installation & Local Setup (macOS)](#installation--local-setup-macos)
 - [Example Use Cases](#example-use-cases)
-  - [CI/CD Pipeline Success Rates](#query-1-cicd-pipeline-success-rates)
+  - [CICD Pipeline Success Rates](#query-1-cicd-pipeline-success-rates)
   - [Build Durations for Failed Builds](#query-2-build-durations-for-failed-builds)
 - [Project Structure](#project-structure)
 - [Technology Stack](#technology-stack)
@@ -75,11 +75,13 @@ python main.py
 
 ### Query 1: CI/CD Pipeline Success Rates
 
-    Input: Show successful builds in last 7 days by branch
+    Query: "Show successful builds in last 7 days by branch"
 
     Generated Pipeline: Filters build events, groups by branch, counts successes
-    
-    Output: Summary of build counts per branch with insights for software delivery
+  ```bash
+  Pipeline: { "$match": { "eventType": "build-completed", "status": "success" } } { "$group": { "_id": "$branch", "count": { "$sum": 1 } } }
+  ```
+    Output: main branch → 25 builds | develop → 15 builds
 
 ### Query 2: Build Durations for Failed Builds
 
@@ -91,7 +93,7 @@ python main.py
 
 ---
 
-## Project Structure
+## Project Structure (uses sample cicd mongodb)
 ```bash
 /
 ├── main.py                 # Core conversational agent and query processing logic
