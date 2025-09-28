@@ -33,7 +33,7 @@ This system provides a conversational AI interface that enables users to query M
 - Natural language query processing with multi-turn conversational refinement  
 - Dynamic translation to MongoDB aggregation pipelines with schema awareness  
 - Secure query execution with performance and safety guards (result limits, validation)  
-- Support for analytics on CI/CD pipeline events and operational software delivery metrics  
+- Support for analytics on CICD pipeline events and operational software delivery metrics  
 - Integration with OpenAI GPT-4o models for language understanding and summarization  
 - Sample datasets and scripts provided for quick startup on local or cloud environments  
 - Modular architecture designed for extensibility and enterprise-grade deployment  
