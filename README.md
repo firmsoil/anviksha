@@ -25,7 +25,7 @@ Transform your software delivery data/events into actionable business insights w
 
 ## Overview
 
-This system provides a conversational AI interface that enables users to query MongoDB enterprise datasets — such as software delivery pipelines —using natural language. User's NLP queries are translated into MongoDB aggregation pipelines dynamically, executed safely, and the results summarized in clear, business-friendly explanations.
+This system provides a conversational AI interface that enables users to query MongoDB enterprise datasets — such as software delivery pipelines — using natural language. User's NLP queries are translated into MongoDB aggregation pipelines dynamically, executed safely, and the results summarized in clear, business-friendly explanations.
 
 ---
 
