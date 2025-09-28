@@ -1,6 +1,7 @@
+import os
 from pymongo import MongoClient
 
-MONGO_URI = "mongodb://localhost:27017/"
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 DB_NAME = "cicd_db"
 COLLECTION_NAME = "cdPipelineEvents"
 
