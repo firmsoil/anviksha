@@ -27,32 +27,4 @@ services:
 # ----------------- Line 27: The top-level 'volumes' section -----------------
 volumes: 
 # ----------------- Line 28: The definition of the named volume (2 spaces) ---
-  mongo-data: 
-```
-
-**Common Mistake to Fix:**
-
-* **Make sure line 28 (`mongo-data:`) is indented exactly two spaces from the `volumes:` line (Line 27).** If it has a hyphen (`-`) or an incorrect number of spaces, it will fail.
-* **Check for Tab Characters:** If you edited the file, ensure you didn't use any hard tab characters for indentation.
-
-### Step 2: Clean Up, Rebuild, and Start
-
-Once you have verified and saved the `docker-compose.yml` file with correct YAML syntax, follow the steps to clean up and restart.
-
-1.  **Stop and Remove Existing Services:**
-
-    ```bash
-    docker compose down
-    ```
-
-2.  **Ensure OpenAI Key is Exported:**
-
-    ```bash
-    # IMPORTANT: Ensure this variable is set in the shell where you run docker compose
-    export OPENAI_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-    ```
-
-3.  **Rebuild and Start Services:**
-
-    ```bash
-    docker compose up --build -d
+  mongo-data:
