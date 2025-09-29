@@ -1,104 +1,142 @@
-from bson import ObjectId
-from datetime import datetime
-import dateparser
+import os
+import json
 import re
+import dateparser
 from typing import List, Dict, Any, Tuple, Optional
+from datetime import datetime
+from bson import ObjectId
+# NOTE: The openai library is used here, assuming you have set OPENAI_API_KEY in your docker-compose.yml
+# If you prefer Gemini, replace this with the appropriate Gemini API client/requests logic.
+from openai import OpenAI
 import logging
+from pymongo.errors import OperationFailure 
 
+# Initialize the OpenAI client (will read key from environment)
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def extract_event_type(query: str) -> Optional[str]:
-    """Extracts event type from query for patterns like: 'pipeline events for XYZ'."""
-    match = re.search(r'pipeline events for ([\w\s\-]+)', query, re.IGNORECASE)
-    if match:
-        return match.group(1).strip()
-    return None
+# Define a basic schema for the LLM to understand the data
+# The LLM uses this information to build the pipeline.
+SCHEMA = """
+Collection: cdPipelineEvents
 
-def extract_object_id(query: str) -> Optional[ObjectId]:
-    """Extracts an ObjectId from query for 'ObjectId(\"...\")' or 'ObjectId(...)'."""
-    match = re.search(r'ObjectId\([\'"]?([a-fA-F0-9]{24})[\'"]?\)', query)
-    if match:
-        try:
-            return ObjectId(match.group(1))
-        except Exception:
-            return None
-    return None
+Fields:
+- event_type: string (e.g., 'Build Stage Started', 'SAST Security Scan Started')
+- user: string (e.g., 'Jane Doe', 'John Smith')
+- source: string (e.g., 'GitLab', 'Harness', 'Security Tool')
+- event_timestamp: datetime (ISO format)
+- duration_seconds: numeric (used for calculating averages and timing)
+"""
 
-def extract_nlp_date(query: str) -> Optional[datetime]:
-    """Extracts date phrase from query like 'since two weeks ago' and parses it."""
-    match = re.search(r'\b(since|after|from)\s+([a-zA-Z0-9\s,.\-]+)', query, re.IGNORECASE)
-    if match:
-        human_date = match.group(2).strip()
-        dt = dateparser.parse(human_date)
-        return dt
-    return None
+# --- LLM Functions (Core Logic) ---
 
 def generate_pipeline(query: str, history: List[Dict[str, str]]) -> Tuple[List[Dict[str, Any]], str]:
     """
-    Generates a MongoDB aggregation pipeline from a natural language query.
-    Supports event type, ObjectId, and natural language date filters.
+    Calls the LLM to generate a MongoDB aggregation pipeline from the user query.
     """
-    pipeline = []
-    explanation = "No recognized pattern in query."
+    full_prompt = (
+        f"You are a MongoDB pipeline generator. Convert the following user query "
+        f"into a valid MongoDB aggregation pipeline that can be executed on the '{SCHEMA}' collection. "
+        f"The query is: '{query}'. "
+        f"Ensure all aggregation operations (like $avg, $sum) use the correct field names and types, especially 'duration_seconds' for time calculations."
+        f"Return the response as a JSON object with two keys: 'pipeline' (List[Dict]) and 'explanation' (str)."
+    )
 
-    # 1. Check ObjectId
-    obj_id = extract_object_id(query)
-    if obj_id:
-        pipeline = [{"$match": {"_id": obj_id}}, {"$limit": 1000}]
-        explanation = f"Matches document with ObjectId {str(obj_id)}"
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a professional JSON-generating MongoDB expert. Respond only with the requested JSON object."},
+                {"role": "user", "content": full_prompt}
+            ],
+            response_format={"type": "json_object"}
+        )
+        
+        response_json = json.loads(response.choices[0].message.content)
+        pipeline = response_json.get("pipeline", [{"$limit": 100}])
+        explanation = response_json.get("explanation", "LLM provided no explanation.")
         return pipeline, explanation
 
-    # 2. Check for event_type and date filters
-    event_type = extract_event_type(query)
-    date_filter = extract_nlp_date(query)
-    match_filter = {}
-
-    if event_type:
-        match_filter["event_type"] = event_type
-
-    if date_filter:
-        match_filter["event_timestamp"] = {"$gte": date_filter}
-
-    if match_filter:
-        pipeline = [{"$match": match_filter}, {"$limit": 1000}]
-        parts = []
-        if event_type:
-            parts.append(f"event_type='{event_type}'")
-        if date_filter:
-            parts.append(f"event_timestamp>={date_filter.isoformat()}")
-        explanation = f"Filters applied: {', '.join(parts)}"  # Fixed unterminated string
+    except Exception as e:
+        # Fallback if LLM call fails (e.g., bad key, network error)
+        logging.error(f"LLM call failed in generate_pipeline: {e}. Falling back to default pipeline.")
+        pipeline = [{"$limit": 100}]
+        explanation = "LLM failed to generate pipeline. Returning 100 sample documents."
         return pipeline, explanation
-
-    # 3. Default fallback: limit documents
-    pipeline = [{"$limit": 1000}]
-    explanation = "No filters detected, returning up to 1000 documents."
-    return pipeline, explanation
 
 
 def execute_pipeline(pipeline: List[Dict[str, Any]], database) -> List[Dict[str, Any]]:
     """
-    Executes the given aggregation pipeline on the specified database using the collection name.
-    Assumes the collection is 'cdPipelineEvents' as per your context.
+    Executes the given aggregation pipeline on the specified database.
     """
     try:
         collection = database["cdPipelineEvents"]
         cursor = collection.aggregate(pipeline)
         results = list(cursor)
-        return results
+        
+        # Convert ObjectId to str for JSON compatibility
+        json_compatible_results = json.loads(json.dumps(results, default=str))
+        return json_compatible_results
+    except OperationFailure as e:
+        # Raise a clear error that includes the failing pipeline for debugging
+        failing_pipeline_str = json.dumps(pipeline, indent=2, default=str)
+        logging.error(f"MongoDB OperationFailure occurred. Pipeline attempted: {failing_pipeline_str}. Error: {e}")
+        # Re-raise the error with context
+        raise RuntimeError(
+            f"MongoDB query failed (OperationFailure). "
+            f"The LLM-generated pipeline was invalid or referenced missing data. "
+            f"Attempted Pipeline: {failing_pipeline_str}. MongoDB Error: {e.details.get('errmsg', 'No message')}"
+        )
     except Exception as e:
-        logging.error(f"Failed to execute pipeline: {e}")
-        return []
+        logging.error(f"Query execution failed: {e}")
+        # Raise a concise error for the caller
+        raise RuntimeError(f"MongoDB pipeline execution failed. Check if data is loaded.")
 
 
-def summarize_results(results: List[Dict[str, Any]], query: str, explanation: str) -> Dict[str, Any]:
+def summarize_results(results: List[Dict[str, Any]], query: str, pipeline_explanation: str) -> str:
     """
-    Creates a summary combining the query, explanation and number of results.
-    You can extend this with more intelligent summarization if desired.
+    Summarizes the query results using the LLM.
     """
-    summary = {
-        "query": query,
-        "explanation": explanation,
-        "result_count": len(results),
-        "sample_results": results[:3] if results else []
-    }
-    return summary
+    if os.getenv("OPENAI_API_KEY"):
+        results_str = json.dumps(results[:10], default=str)
+        system_prompt = "You are a helpful summarizer. Provide a concise, business-friendly summary and explanation. Output only plain text."
+        user_prompt = f"Given query: \"{query}\"\nPipeline explanation: \"{pipeline_explanation}\"\nResults: {results_str}\n"
+
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logging.error(f"LLM summarization failed: {e}")
+            return f"Error: LLM summarization failed ({str(e)}). Raw count: {len(results)}"
+    else:
+        return f"Mock summary (OpenAI Key Missing). Raw result count: {len(results)}"
+
+# --- Utility functions (Fixed) ---
+
+def extract_event_type(query: str) -> Optional[str]:
+    match = re.search(r'pipeline events for ([\w\s\-]+)', query, re.IGNORECASE)
+    if match: return match.group(1).strip()
+    return None
+
+def extract_object_id(query: str) -> Optional[ObjectId]:
+    # FIXED: Using a cleaner raw string regex to avoid Python SyntaxError on startup
+    # This matches ObjectId(24charhex), ObjectId('24charhex'), or just the 24-char hex string
+    match = re.search(r'([a-fA-F0-9]{24})', query)
+    if match:
+        try: return ObjectId(match.group(1))
+        except Exception: return None
+    return None
+
+def extract_nlp_date(query: str) -> Optional[datetime]:
+    match = re.search(r'\b(since|after|from)\s+([a-zA-Z0-9\s,.-]+)', query, re.IGNORECASE)
+    if match:
+        human_date = match.group(2).strip()
+        dt = dateparser.parse(human_date)
+        return dt
+    return None
 

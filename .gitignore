@@ -1,0 +1,61 @@
+# --- General Ignored Files ---
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cython files
+*.c
+*.h
+*.html
+
+# --- Python Environments ---
+# Virtual environment directories
+.venv/
+venv/
+env/
+bin/
+include/
+lib/
+lib64/
+pyvenv.cfg
+share/
+
+# Distribution / packaging
+.Python
+build/
+dist/
+htmlcov/
+.coverage
+
+# --- Dependency Management ---
+# For poetry
+poetry.lock
+
+# For pipenv
+Pipfile.lock
+
+# --- OS and Editor Artifacts ---
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*.swo
+
+# --- Docker & Development Artifacts ---
+mongo_data/
+*.log
+
+# Environment variables and secrets
+.env
+.flaskenv
+secrets.ini
+*.key
+*.pem
+
+# IDE-specific files
+.idea/
+.vscode/
+
+# Ignore compiled frontend assets (if applicable)
+node_modules/

@@ -1,4 +1,3 @@
-# docker-compose.yml
 version: '3.8'
 services:
   # 1. MongoDB Service
@@ -16,15 +15,16 @@ services:
     build: . # Build using the Dockerfile in the current directory
     container_name: fastapi_analytics
     ports:
-      - "8000:8000" # Expose the API port
+      - "8080:8080" # CORRECTED PORT MAPPING to match Dockerfile
     depends_on:
       - mongo # Ensure mongo starts before the app
     environment:
-      # IMPORTANT: Use the Docker service name 'mongo' for the host
       - MONGO_URI=mongodb://mongo:27017/
       - DB_NAME=cicd_db
-      # Set your actual OpenAI key here, read from your shell environment
+      # This line often causes issues if not properly set/escaped
       - OPENAI_API_KEY=${OPENAI_API_KEY} 
 
-volumes:
+# ----------------- Line 27: The top-level 'volumes' section -----------------
+volumes: 
+# ----------------- Line 28: The definition of the named volume (2 spaces) ---
   mongo-data:

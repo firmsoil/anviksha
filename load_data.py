@@ -1,55 +1,112 @@
-import pymongo
-from datetime import datetime
+import os
+import random
+from datetime import datetime, timedelta
+from pymongo import MongoClient
 
-MONGO_URI = "mongodb://localhost:27017/"
-DB_NAME = "cicd_db"
+# --- Configuration ---
+# Use the service name defined in docker-compose for the host
+MONGO_HOST = os.getenv("MONGO_HOST", "mongodb_cicd")
+MONGO_PORT = os.getenv("MONGO_PORT", "27017")
+MONGO_URI = f"mongodb://{MONGO_HOST}:{MONGO_PORT}/"
+DATABASE_NAME = "cicd_db"
 COLLECTION_NAME = "cdPipelineEvents"
 
-EVENT_RECORDS = [
-    {"event_type": "Pull Request Created", "description": "Developer raises a pull request (merge request) for code review.", "source": "GitLab"},
-    {"event_type": "Code Review / Approval", "description": "Pull request undergoes code review and approval process including security and policy checks.", "source": "GitLab"},
-    {"event_type": "Pipeline Created", "description": "Pipeline triggered on pull request creation/update to run CI jobs.", "source": "GitLab"},
-    {"event_type": "Pipeline Started", "description": "CI pipeline execution starts with build and test jobs.", "source": "GitLab"},
-    {"event_type": "Build Stage Started", "description": "Build jobs compiling code and creating artifacts begin.", "source": "GitLab"},
-    {"event_type": "SonarQube Code Quality Scan Started", "description": "Automated SonarQube scan analyzes code quality as a gate in CI pipeline.", "source": "SonarQube/GitLab"},
-    {"event_type": "SonarQube Code Quality Scan Completed", "description": "SonarQube analysis completes; quality gate passed/failed determines pipeline continuation.", "source": "SonarQube/GitLab"},
-    {"event_type": "SAST Security Scan Started", "description": "Static Application Security Testing scan to detect code vulnerabilities begins.", "source": "Security Tool"},
-    {"event_type": "SAST Security Scan Completed", "description": "SAST scan completes; security gate validation results impact progression.", "source": "Security Tool"},
-    {"event_type": "SCA Security Scan Started", "description": "Software Composition Analysis begins to look for insecure dependencies and license risks.", "source": "Security Tool"},
-    {"event_type": "SCA Security Scan Completed", "description": "SCA scan completes; security gate validation results impact progression.", "source": "Security Tool"},
-    {"event_type": "Security & Risk Control Gate Check Started", "description": "Automated or manual security and compliance gate checks start (e.g., secrets scanning, threat modeling).", "source": "Security Tools/Policies"},
-    {"event_type": "Security & Risk Control Gate Passed", "description": "Security and compliance gates passed; pipeline allowed to continue.", "source": "Security Tools"},
-    {"event_type": "Security & Risk Control Gate Failed", "description": "A gate failure triggers pipeline halt, manual review, or remediation steps.", "source": "Security Tools"},
-    {"event_type": "Artifact Validation Started", "description": "Validation of artifact signatures, integrity, and compliance begins as a gate before deployment.", "source": "CI/CD system"},
-    {"event_type": "Artifact Validation Passed", "description": "Validation successful; artifact cleared for deployment.", "source": "CI/CD system"},
-    {"event_type": "Artifact Validation Failed", "description": "Validation failure blocks progression to deployment.", "source": "CI/CD system"},
-    {"event_type": "Pipeline Finished", "description": "CI pipeline completes successfully or fails on pull request.", "source": "GitLab"},
-    {"event_type": "Merge Completed", "description": "Pull request merged into main branch after passing all CI and security gates.", "source": "GitLab"},
-    {"event_type": "CD Pipeline Started", "description": "Harness CD pipeline starts deployment process to non-prod environment.", "source": "Harness"},
-    {"event_type": "Deployment Stage Started", "description": "Deployment stage to staging, QA, or testing environment begins.", "source": "Harness"},
-    {"event_type": "Deployment Stage Finished", "description": "Deployment stage completes successfully or fails.", "source": "Harness"},
-    {"event_type": "Manual Approval Requested", "description": "Manual approval for production deployment triggered as security control.", "source": "Harness"},
-    {"event_type": "Manual Approval Given", "description": "Manual approval granted after review of security/risk posture.", "source": "Harness"},
-    {"event_type": "Manual Approval Denied", "description": "Manual approval denied; pipeline paused or aborted due to security concerns.", "source": "Harness"},
-    {"event_type": "Production Deployment Started", "description": "Production deployment begins after passing all security and quality gates.", "source": "Harness"},
-    {"event_type": "Production Deployment Finished", "description": "Production deployment completes successfully or rollback initiated on failure.", "source": "Harness"},
-    {"event_type": "Rollback Initiated", "description": "Rollback initiated due to failed deployment or security incidents detected post-deployment.", "source": "Harness"},
-    {"event_type": "Rollback Finished", "description": "Rollback completes to last known good state.", "source": "Harness"},
-    {"event_type": "Service Monitoring Started", "description": "Monitoring of deployed app instances for security incidents, anomalies, and performance starts.", "source": "Harness"},
-]
+# --- Data Generation Helper ---
+
+def generate_events(start_date: datetime, count: int) -> list:
+    """Generates a list of realistic CI/CD events with numerical durations."""
+    events = []
+    
+    # Events that should have a duration (simulated seconds)
+    # Events with 0 duration will have their 'duration_seconds' field set to 0.
+    event_types = [
+        ("Pull Request Created", 0),
+        ("Code Review / Approval", 3600), # 1 hour
+        ("SonarQube Code Quality Scan Started", 0),
+        ("SonarQube Code Quality Scan Completed", 120), # 2 mins
+        ("Build Stage Started", 0),
+        ("Unit Tests Completed", 60), # 1 min
+        ("Integration Tests Completed", 300), # 5 mins
+        ("Vulnerability Scan Started", 0),
+        ("Vulnerability Scan Failed", 0),
+        ("SAST Security Scan Started", 0),
+        ("SAST Security Scan Completed", 900), # 15 mins (Longest event)
+        ("Artifact Published (Container)", 30), # 30 seconds
+        ("Pre-Prod Deployment Started", 0),
+        ("Manual Approval Required", 0),
+        ("Manual Approval Denied", 0),
+        ("Production Deployment Started", 0),
+        ("Production Deployment Finished", 180), # 3 mins
+        ("Service Monitoring Started", 0),
+        ("Rollback Initiated", 0),
+        ("Rollback Finished", 150), # 2.5 mins
+    ]
+    
+    users = ["John Smith", "Jane Doe", "SystemUser-CI", "DeveloperX"]
+    sources = ["GitLab", "Jenkins", "Security Tool", "Harness"]
+
+    current_date = start_date
+    for _ in range(count):
+        event_type, base_duration = random.choice(event_types)
+        
+        # Determine the duration, adding some random noise
+        duration = 0 # Default to 0 seconds (FIXED: was None)
+        if base_duration > 0:
+            # Add/subtract up to 50% of the base duration for variation
+            variation = random.randint(-int(base_duration * 0.5), int(base_duration * 0.5))
+            duration = max(1, base_duration + variation)
+        
+        current_date += timedelta(minutes=random.randint(5, 60)) # Space events out
+
+        event = {
+            "event_type": event_type,
+            "event_timestamp": current_date,
+            "user": random.choice(users),
+            "source": random.choice(sources),
+            "duration_seconds": duration, # Now guaranteed to be a number (0 or positive)
+            "pipeline_id": f"pipeline-{random.randint(100, 105)}",
+            "metadata": {
+                "branch": "main" if "Prod" in event_type else "feature-branch",
+                "environment": "prod" if "Prod" in event_type else "dev",
+            }
+        }
+        events.append(event)
+        
+    return events
+
+# --- Main Execution ---
 
 def load_data():
-    client = pymongo.MongoClient(MONGO_URI)
-    db = client[DB_NAME]
-    collection = db[COLLECTION_NAME]
-    # Clear old data if any
-    collection.delete_many({})
-    # Add event_timestamp field with current timestamp to all events
-    for event in EVENT_RECORDS:
-        event["event_timestamp"] = datetime.now()
-    collection.insert_many(EVENT_RECORDS)
-    print(f"Loaded {len(EVENT_RECORDS)} CICD event records into {DB_NAME}.{COLLECTION_NAME} with event_timestamp")
+    """Initializes MongoDB connection and loads sample data."""
+    try:
+        # Connect to MongoDB
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        client.admin.command('ping') 
+        db = client[DATABASE_NAME]
+        collection = db[COLLECTION_NAME]
+
+        # 1. Drop the existing collection (for clean reload)
+        collection.drop()
+        print(f"Dropped existing collection: {COLLECTION_NAME}")
+
+        # 2. Generate and insert new data
+        start_time = datetime.now() - timedelta(days=7)
+        new_events = generate_events(start_time, 100)
+        
+        insert_result = collection.insert_many(new_events)
+        print(f"Successfully inserted {len(insert_result.inserted_ids)} new documents into {COLLECTION_NAME}.")
+        
+        # 3. Create indices for better performance on common query fields
+        collection.create_index("event_type")
+        collection.create_index("event_timestamp")
+        collection.create_index("user")
+        
+        client.close()
+
+    except Exception as e:
+        print(f"Error loading data into MongoDB: {e}")
 
 if __name__ == "__main__":
+    # Ensure the script runs when executed directly by docker-compose run
     load_data()
 
