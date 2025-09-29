@@ -58,7 +58,7 @@ This system provides a conversational AI interface that enables users to query M
 ```bash
     git clone https://github.com/your-org/anviksha-analytics.git
     # Navigate into the project directory
-    cd anviksha-analytics
+    cd anviksha
 ```
 ## Step 3: Configure Environment Variables
 ```bash
