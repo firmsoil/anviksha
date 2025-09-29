@@ -99,16 +99,12 @@ This system provides a conversational AI interface that enables users to query M
 
 ## Step 6: Verification
 ```bash    
-    Your system should now be fully operational.
-    
-    Check Container Status:
+    Your system should now be fully operational. Check Container Status:
+
     docker-compose ps
     
     Both the anviksha-mongo and anviksha-api services should show their status as Up.
     
-    Access the API: The FastAPI service is typically exposed on port 8080.
-    
-    Swagger UI: Open your browser to view the API documentation: http://localhost:8080/docs
 ```
 
 ### 7. Execute sample Query API request
