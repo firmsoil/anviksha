@@ -45,67 +45,80 @@ This system provides a conversational AI interface that enables users to query M
 
 ## Installation & Local Setup (macOS)
 
-### 1. Install MongoDB Community Edition
+
+### Step 1: Install Prerequisites
 ```bash
-brew tap mongodb/brew
-brew install mongodb-community@7.0
-brew services start mongodb-community@7.0
+    Ensure you have the following software installed on your system:
+    Ensure Docker Desktop is running before proceeding.
+    Ensure Python3 is installed.
+    Git: For cloning the repository.
 ```
-### 2. Set up Python Virtual Environment
+
+### Step 2: Clone the Repository
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+    git clone https://github.com/your-org/anviksha-analytics.git
+    # Navigate into the project directory
+    cd anviksha-analytics
 ```
-### 3. Install Python Dependencies
+## Step 3: Configure Environment Variables
 ```bash
-pip install pymongo openai langchain
+    The project requires a .env file to securely manage secrets, most importantly the Gemini API Key and MongoDB credentials.
+    Obtain Your Gemini API Key: Ensure you have your key ready.
+    Create the .env file: In the root of the anviksha-analytics directory, create a new file named .env and populate it with the following content.
+
+    # --- Gemini API Key ---
+    GEMINI_API_KEY="YOUR_API_KEY_HERE"
+
+    # --- MongoDB Configuration (used by FastAPI service) ---
+    MONGO_HOST=anviksha-mongo
+    MONGO_PORT=27017
+    MONGO_DATABASE=cicd_events
+    MONGO_USERNAME=admin
+    MONGO_PASSWORD=secretpassword
+
+    ⚠️ IMPORTANT: Replace "YOUR_API_KEY_HERE" with your actual Gemini API Key. The other variables are defaults for the Docker network and should   
+    match your docker-compose.yml.
 ```
-### 4. Load Sample Data
+## Step 4: Run Containers with Docker Compose
 ```bash
-python load_data.py
+    With Docker Desktop running and the .env file configured, you can launch the entire stack:
 ```
-### 5. Set OpenAI API Key Environment Variable
+## Build the FastAPI image and start both the FastAPI service and MongoDB container
 ```bash
-export OPENAI_API_KEY="your_openai_api_key_here"
+    docker-compose up --build -d
 ```
-### 6. Run the Conversational Analytics System
+
+## Step 5: Load Initial Sample Data
 ```bash
-python main.py
+    The load_data.py script needs to run once to seed your MongoDB instance. We will run this script inside the newly built Docker container to 
+    ensure it has the correct dependencies and network access.
+
+    # Execute the load_data.py script inside the 'anviksha-api' service container
+    docker-compose run --rm anviksha-api python load_data.py
 ```
+
+## Step 6: Verification
+```bash    
+    Your system should now be fully operational.
+    
+    Check Container Status:
+    docker-compose ps
+    
+    Both the anviksha-mongo and anviksha-api services should show their status as Up.
+    
+    Access the API: The FastAPI service is typically exposed on port 8080.
+    
+    Swagger UI: Open your browser to view the API documentation: http://localhost:8080/docs
+```
+
 ### 7. Execute sample Query API request
 ```bash
-curl -X POST "http://localhost:8000/api/query" \
--H "Content-Type: application/json" \
--d '{
-  "query": "Show me all pipeline events since two weeks ago"
-}'
+curl http://192.168.1.77:8080/api/query -X POST -H "Content-Type: application/json" -d '{"query": "Which event type takes the longest on average?", "session_id": "llm_test_session"}'
 ```
 to get the JSON response like
 ```bash
-{"results":[{"_id":"68d896045fb8dcac2fb48c6d","event_type":"Pull Request Created","description":"Developer raises a pull request (merge request) for code review.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c6e","event_type":"Code Review / Approval","description":"Pull request undergoes code review and approval process including security and policy checks.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c6f","event_type":"Pipeline Created","description":"Pipeline triggered on pull request creation/update to run CI jobs.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c70","event_type":"Pipeline Started","description":"CI pipeline execution starts with build and test jobs.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c71","event_type":"Build Stage Started","description":"Build jobs compiling code and creating artifacts begin.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c72","event_type":"SonarQube Code Quality Scan Started","description":"Automated SonarQube scan analyzes code quality as a gate in CI pipeline.","source":"SonarQube/GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c73","event_type":"SonarQube Code Quality Scan Completed","description":"SonarQube analysis completes; quality gate passed/failed determines pipeline continuation.","source":"SonarQube/GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c74","event_type":"SAST Security Scan Started","description":"Static Application Security Testing scan to detect code vulnerabilities begins.","source":"Security Tool","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c75","event_type":"SAST Security Scan Completed","description":"SAST scan completes; security gate validation results impact progression.","source":"Security Tool","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c76","event_type":"SCA Security Scan Started","description":"Software Composition Analysis begins to look for insecure dependencies and license risks.","source":"Security Tool","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c77","event_type":"SCA Security Scan Completed","description":"SCA scan completes; security gate validation results impact progression.","source":"Security Tool","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c78","event_type":"Security & Risk Control Gate Check Started","description":"Automated or manual security and compliance gate checks start (e.g., secrets scanning, threat modeling).","source":"Security Tools/Policies","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c79","event_type":"Security & Risk Control Gate Passed","description":"Security and compliance gates passed; pipeline allowed to continue.","source":"Security Tools","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7a","event_type":"Security & Risk Control Gate Failed","description":"A gate failure triggers pipeline halt, manual review, or remediation steps.","source":"Security Tools","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7b","event_type":"Artifact Validation Started","description":"Validation of artifact signatures, integrity, and compliance begins as a gate before deployment.","source":"CI/CD system","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7c","event_type":"Artifact Validation Passed","description":"Validation successful; artifact cleared for deployment.","source":"CI/CD system","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7d","event_type":"Artifact Validation Failed","description":"Validation failure blocks progression to deployment.","source":"CI/CD system","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7e","event_type":"Pipeline Finished","description":"CI pipeline completes successfully or fails on pull request.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7f","event_type":"Merge Completed","description":"Pull request merged into main branch after passing all CI and security gates.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c80","event_type":"CD Pipeline Started","description":"Harness CD pipeline starts deployment process to non-prod environment.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c81","event_type":"Deployment Stage Started","description":"Deployment stage to staging, QA, or testing environment begins.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c82","event_type":"Deployment Stage Finished","description":"Deployment stage completes successfully or fails.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c83","event_type":"Manual Approval Requested","description":"Manual approval for production deployment triggered as security control.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c84","event_type":"Manual Approval Given","description":"Manual approval granted after review of security/risk posture.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c85","event_type":"Manual Approval Denied","description":"Manual approval denied; pipeline paused or aborted due to security concerns.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c86","event_type":"Production Deployment Started","description":"Production deployment begins after passing all security and quality gates.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c87","event_type":"Production Deployment Finished","description":"Production deployment completes successfully or rollback initiated on failure.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c88","event_type":"Rollback Initiated","description":"Rollback initiated due to failed deployment or security incidents detected post-deployment.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c89","event_type":"Rollback Finished","description":"Rollback completes to last known good state.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c8a","event_type":"Service Monitoring Started","description":"Monitoring of deployed app instances for security incidents, anomalies, and performance starts.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"}],"explanation":"This pipeline filters the events from the last two weeks based on the event_timestamp, ensuring only valid event documents are included and limits the results to 1000."}%
+{"query_text":"Which event type takes the longest on average?","summary":"The aggregation pipeline analysis reveals that the \"Code Review / Approval\" event type has the longest average duration, recorded at 3,482.5 seconds. This was determined by grouping event types, calculating their average durations, sorting them in descending order, and selecting the top result.","pipeline_explanation":"This aggregation pipeline groups the events by 'event_type' to calculate the average duration (in seconds) for each event type using $avg. It then sorts the results in descending order based on the average duration and limits the output to the top result, which indicates the event type that takes the longest on average.","mongodb_pipeline":[{"$group":{"_id":"$event_type","average_duration":{"$avg":"$duration_seconds"}}},{"$sort":{"average_duration":-1}},{"$limit":1}],"results":[{"_id":"Code Review / Approval","average_duration":3482.5}]}%
 ```
-
----
-
-## Example Use Cases
-
-### Query 1: CICD Pipeline Success Rates
-
-    Query: "Show successful builds in last 7 days by branch"
-
-    Generated Pipeline: Filters build events, groups by branch, counts successes
-  ```bash
-  Pipeline: { "$match": { "eventType": "build-completed", "status": "success" } } { "$group": { "_id": "$branch", "count": { "$sum": 1 } } }
-  ```
-    Output: main branch → 25 builds | develop → 15 builds
-
-### Query 2: Build Durations for Failed Builds
-
-    Input: Average build duration for failed builds triggered by user jdoe last month
-    
-    Generated Pipeline: Filters by status, user, and timeframe, averages duration
-    
-    Output: Concise statistic highlighting bottlenecks or performance issues
 
 ---
 
