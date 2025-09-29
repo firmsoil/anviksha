@@ -1,67 +1,137 @@
-from fastapi import FastAPI, HTTPException, Body, Query
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+import os
+import logging
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from pymongo.errors import ConnectionFailure, OperationFailure
+from datetime import datetime
+from bson import ObjectId
+
+# Corrected Import: Import the new LLM functions
 from .pipeline import generate_pipeline, execute_pipeline, summarize_results
-from .models import QueryRequest, QueryResponse, EventFilter
-from .db import get_collection
 
-app = FastAPI(title="CICD Conversational Analytics API")
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 
-# In-memory session history store, replace with persistent storage as needed
-session_history = {}
+# --- MongoDB Setup ---
 
-EVENT_SCHEMA = {
-    "event_type": "string",
-    "description": "string",
-    "source": "string"
-}
+# Use the service name defined in docker-compose for the host
+MONGO_HOST = os.getenv("MONGO_HOST", "mongodb_cicd")
+MONGO_PORT = os.getenv("MONGO_PORT", "27017")
+MONGO_URI = f"mongodb://{MONGO_HOST}:{MONGO_PORT}/"
+DATABASE_NAME = "cicd_db"
+
+# Lazy-loaded database connection
+db_client = None
+database = None
+
+def get_db():
+    global db_client, database
+    if database is None:
+        try:
+            from pymongo import MongoClient
+            db_client = MongoClient(MONGO_URI)
+            # The ismaster command is a lightweight way to check a connection.
+            db_client.admin.command('ismaster')
+            database = db_client[DATABASE_NAME]
+            logging.info("Successfully connected to MongoDB.")
+        except ConnectionFailure as e:
+            logging.error(f"MongoDB connection failed: {e}")
+            # Re-raise to halt the application startup if database is essential
+            raise RuntimeError(f"Failed to connect to MongoDB at {MONGO_URI}. Check Docker network.")
+    return database
+
+# --- FastAPI App Initialization ---
+
+# Fix: Added json_encoders to handle MongoDB ObjectId and datetime automatically
+app = FastAPI(
+    title="CICD Conversational Analytics API",
+    description="A service to convert natural language into MongoDB aggregation pipelines for CI/CD data analysis.",
+    version="1.0.1",
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
+    json_encoders={
+        ObjectId: str,
+        datetime: lambda dt: dt.isoformat(),
+    }
+)
+
+# --- Pydantic Models ---
+
+class QueryRequest(BaseModel):
+    query: str
+    session_id: str = "default_session"
+    history: list = []
+
+class QueryResponse(BaseModel):
+    query_text: str
+    summary: str
+    pipeline_explanation: str
+    mongodb_pipeline: list
+    results: list
+
+# --- Application Startup Event ---
+
+@app.on_event("startup")
+def startup_db_client():
+    # Attempt connection on startup
+    try:
+        get_db()
+    except RuntimeError:
+        # If connection fails, allow app to start, but requests will fail until DB is available
+        pass
+
+# --- API Routes ---
+
+@app.get("/api/health")
+def health_check():
+    """Simple health check."""
+    try:
+        db = get_db()
+        # Ping the database
+        db_client.admin.command('ping')
+        return {"status": "ok", "db_status": "connected"}
+    except Exception as e:
+        # Return HTTP 500 if DB is down
+        raise HTTPException(status_code=500, detail=f"Database connection failed: {e}")
+
 
 @app.post("/api/query", response_model=QueryResponse)
-async def api_query(query_request: QueryRequest):
-    coll = get_collection()
-    history = session_history.get(query_request.session_id, []) if query_request.session_id else []
-
+def handle_query(request: QueryRequest):
+    """
+    Converts a natural language query into a MongoDB aggregation pipeline
+    and returns the results.
+    """
     try:
-        pipeline, explanation = generate_pipeline(query_request.query, history)
-        results = execute_pipeline(pipeline, coll.database)
-        summary = summarize_results(results, query_request.query, explanation)
+        db = get_db()
 
-        if query_request.session_id:
-            history.append({"query": query_request.query, "response": summary})
-            session_history[query_request.session_id] = history
+        # Step 1: LLM converts NL query to MongoDB Pipeline
+        # NEW: Using generate_pipeline
+        pipeline, explanation = generate_pipeline(request.query, request.history)
+        
+        # Step 2: Execute the Pipeline against MongoDB
+        # NEW: Using execute_pipeline
+        results = execute_pipeline(pipeline, db)
+        
+        # Step 3: LLM summarizes the results
+        # NEW: Using summarize_results
+        summary = summarize_results(results, request.query, explanation)
 
+        # Step 4: Return structured response
         return QueryResponse(
-            pipeline=pipeline,
-            explanation=explanation,
-            results=results,
-            raw_results=None
+            query_text=request.query,
+            summary=summary,
+            pipeline_explanation=explanation,
+            mongodb_pipeline=pipeline,
+            results=results
         )
+
+    except RuntimeError as e:
+        # Handles errors raised from execute_pipeline (like OperationFailure)
+        logging.error(f"Query processing failed: {e}")
+        # Return a custom error message to the client
+        raise HTTPException(status_code=500, detail=f"Internal Server Error processing query. Details: {e}")
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/schema")
-async def api_schema():
-    return {"schema": EVENT_SCHEMA}
-
-
-@app.post("/api/history")
-async def api_history(session_id: str):
-    return {"history": session_history.get(session_id, [])}
-
-
-@app.post("/api/events", response_model=List[Dict[str, Any]])
-async def api_events(filters: EventFilter = Body(...)):
-    coll = get_collection()
-    query = {}
-    if filters.event_type:
-        query["event_type"] = {"$regex": filters.event_type, "$options": "i"}
-    if filters.source:
-        query["source"] = {"$regex": filters.source, "$options": "i"}
-
-    cursor = coll.find(query).skip(filters.skip).limit(filters.limit)
-    results = []
-    for doc in cursor:
-        doc["_id"] = str(doc["_id"])
-        results
+        logging.error(f"An unexpected error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
