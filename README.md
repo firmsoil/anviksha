@@ -17,23 +17,18 @@ Transform your software delivery data/events into actionable business insights w
 - [Overview](#Overview)
 - [Key Features](#Key-Features)
 - [Installation & Local Setup (macOS)](#installation--local-setup-macos)
-- [Example Use Cases](#Example-Use-Cases)
 - [Project Structure (uses sample cicd mongodb)](#project-structure-uses-sample-cicd-mongodb)
 - [Technology Stack](#Technology-Stack)
+- [Architecture](#Architecture)
 - [References](#References)
 - [Contributing](#Contributing)
 - [License](#License)
 
 ---
 
-## Overview
-
-Anviksha Analytics provides a conversational AI interface that enables users to query MongoDB enterprise datasets — such as software delivery pipelines — using natural language. User's NLP queries are translated into MongoDB aggregation pipelines dynamically, executed safely, and the results summarized in clear, user-friendly natural-language-explanations. The core purpose of Anviksha Analytics is to bridge the gap between business questions and technical data retrieval. Instead of writing complex MongoDB queries to calculate averages, filter events, or count occurrences, users simply ask a question via the web interface.
-
-
 ## 🚀 Overview
 
-The core purpose of Anviksha Analytics is to bridge the gap between business questions and technical data retrieval. Instead of writing complex MongoDB queries to calculate averages, filter events, or count occurrences, users simply ask a question via the web interface.
+Anviksha Analytics provides a conversational AI interface that enables users to query MongoDB enterprise datasets — such as software delivery pipelines — using natural language. User's NLP queries are translated into MongoDB aggregation pipelines dynamically, executed safely, and the results summarized in clear, user-friendly natural-language-explanations. The core purpose of Anviksha Analytics is to bridge the gap between business questions and technical data retrieval. Instead of writing complex MongoDB queries to calculate averages, filter events, or count occurrences, users simply ask a question via the web interface.
 
 **Example Query:** *"Which event type takes the longest on average?"*
 
@@ -61,7 +56,7 @@ The system then automatically generates the correct MongoDB pipeline, executes i
 
 ---
 
-## 🛠️ Setup and Running Locally
+## 🛠️ Installation & Local Setup (macOS)
 
 Follow these steps to get **Anviksha Analytics** fully operational on your machine.
 
@@ -75,7 +70,7 @@ Follow these steps to get **Anviksha Analytics** fully operational on your machi
 
 This command builds the application image, installing all required Python dependencies (including the `requests` library for the LLM API calls), and starts both the FastAPI and MongoDB containers in the background.
 
-### 2. Execute sample Query API request
+### 2. Execute NLP Query API request
 ```bash
 curl http://localhost:8080/api/query -X POST -H "Content-Type: application/json" -d '{"query": "Which event type takes the longest on average?", "session_id": "llm_test_session"}'
 ```
