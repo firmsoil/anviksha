@@ -51,7 +51,7 @@ This system provides a conversational AI interface that enables users to query M
     Ensure you have the following software installed on your system:
     Ensure Docker Desktop is running before proceeding.
     Ensure Python3 is installed.
-    Git: For cloning the repository.
+    Ensure MongoDB is installed and running
 ```
 
 ### Step 2: Clone the Repository
@@ -122,7 +122,7 @@ to get the JSON response like
 
 ---
 
-## Project Structure (uses sample cicd mongodb)
+## Project Structure (uses mongodb)
 ```bash
 /
 ├── main.py                 # Core conversational agent and query processing logic
