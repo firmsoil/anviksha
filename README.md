@@ -164,6 +164,22 @@ This stack is chosen to ensure enterprise-grade security, scalability, and opera
 
 ## References 
 
+- **MongoDB, Inc. (2025). Simplify AI-Driven Data Connectivity With MongoDB and MCP Toolbox.**  
+  Provides reference architecture and real-world use cases guiding integration design; relevant to system modularity and data source abstraction
+  patterns.
+
+- **Google. (2025). MongoDB | MCP Toolbox for Databases.**  
+  Documentation outlines connector schema and integration points mirrored in `main.py` tool and pipeline generation logic.
+
+- **Google Cloud. (2025). MongoDB Connector for Google Cloud Integration.**  
+  Correlates with infrastructure provisioning and integration validation activities covered in `setup.sh` and deployment configurations.
+  
+- **FlowHunt. (2025). MongoDB MCP Server - FlowHunt.**  
+  Example implementation of MCP server that inspired design of the backend microservices.
+
+- **Glama.ai. (2025). MongoDB MCP Server.**  
+  Demonstrates operational MCP MongoDB tooling pattern influencing our API endpoint and query executor logic.
+  
 - **MongoDB, Inc. (2025). MongoDB Atlas Architecture Center.**  
   Correlates to data layer setup, Atlas cluster provisioning, and resilient storage accessed by the pipeline executor service in `main.py`.
 
@@ -206,23 +222,8 @@ This stack is chosen to ensure enterprise-grade security, scalability, and opera
 - **OpenAI. (2025). OpenAI Summarization Example.**  
   Supports the summarization feature post pipeline execution in `main.py`.
 
-- **MongoDB, Inc. (2025). Simplify AI-Driven Data Connectivity With MongoDB and MCP Toolbox.**  
-  Provides reference architecture and real-world use cases guiding integration design; relevant to system modularity and data source abstraction patterns.
-
 - **MongoDB, Inc. (2025). Announcing the MongoDB MCP Server.**  
   Key reference for multi-data source support and AI agent interaction capability, reflected in modular tool loading and extensibility in codebase.
-
-- **Google. (2025). MongoDB | MCP Toolbox for Databases.**  
-  Documentation outlines connector schema and integration points mirrored in `main.py` tool and pipeline generation logic.
-
-- **FlowHunt. (2025). MongoDB MCP Server - FlowHunt.**  
-  Example implementation of MCP server that inspired design of the backend microservices.
-
-- **Glama.ai. (2025). MongoDB MCP Server.**  
-  Demonstrates operational MCP MongoDB tooling pattern influencing our API endpoint and query executor logic.
-
-- **Google Cloud. (2025). MongoDB Connector for Google Cloud Integration.**  
-  Correlates with infrastructure provisioning and integration validation activities covered in `setup.sh` and deployment configurations.
 
 ---
 
