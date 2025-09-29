@@ -17,105 +17,122 @@ Transform your software delivery data/events into actionable business insights w
 - [Overview](#Overview)
 - [Key Features](#Key-Features)
 - [Installation & Local Setup (macOS)](#installation--local-setup-macos)
+- [Example Use Cases](#Example-Use-Cases)
 - [Project Structure (uses sample cicd mongodb)](#project-structure-uses-sample-cicd-mongodb)
 - [Technology Stack](#Technology-Stack)
-- [Architecture](#Architecture)
 - [References](#References)
 - [Contributing](#Contributing)
 - [License](#License)
 
 ---
 
-## 🚀 Overview
+## Overview
 
-Anviksha Analytics provides a conversational AI interface that enables users to query MongoDB enterprise datasets — such as software delivery pipelines — using natural language. User's NLP queries are translated into MongoDB aggregation pipelines dynamically, executed safely, and the results summarized in clear, user-friendly natural-language-explanations. The core purpose of Anviksha Analytics is to bridge the gap between business questions and technical data retrieval. Instead of writing complex MongoDB queries to calculate averages, filter events, or count occurrences, users simply ask a question via the web interface.
-
-**Example Query:** *"Which event type takes the longest on average?"*
-
-The system then automatically generates the correct MongoDB pipeline, executes it against the event database, and returns a summarized answer.
+This system provides a conversational AI interface that enables users to query MongoDB enterprise datasets — such as software delivery pipelines — using natural language. User's NLP queries are translated into MongoDB aggregation pipelines dynamically, executed safely, and the results summarized in clear, user-friendly natural-language-explanations.
 
 ---
 
-## ✨ Key Features
-
-* **Natural Language to Query (NL2Q):** Utilizes the Gemini LLM to convert complex natural language into precise MongoDB Aggregation Pipelines (JSON).
-
-* **Dynamic Translation:** MongoDB aggregation pipelines with schema awareness.
-
-* **Secure Query:** Wuery execution with performance and safety guards (result limits, validation) 
-
-* **End-to-End Dockerization:** All services (API, Database) are containerized for easy deployment and local development using Docker Compose.
-
-* **Robust Data Modeling:** The data loader (`load_data.py`) ensures clean data with necessary numerical fields (e.g., `duration_seconds`) for accurate aggregation and analysis.
-
-* **Interactive Web Dashboard:** A single-file HTML/JavaScript frontend provides a user-friendly interface to submit queries and view summarized, detailed, and raw JSON results.
-
-* **Enhanced Stability:** Implements robust error handling and proper dependency management, ensuring the FastAPI container remains stable under load.
-
-* **Modular Architecture:** Designed for extensibility and enterprise-grade deployment (e.g. Vertex AI on Google Cloud).
+## Key Features
+- Natural language query processing with multi-turn conversational refinement  
+- Dynamic translation to MongoDB aggregation pipelines with schema awareness  
+- Secure query execution with performance and safety guards (result limits, validation)  
+- Support for analytics on CICD pipeline events and operational software delivery metrics  
+- Integration with OpenAI GPT-4o models for language understanding and summarization  
+- Sample datasets and scripts provided for quick startup on local or cloud environments  
+- Modular architecture designed for extensibility and enterprise-grade deployment  
 
 ---
 
-## 🛠️ Installation & Local Setup (macOS)
+## Installation & Local Setup (macOS)
 
-Follow these steps to get **Anviksha Analytics** fully operational on your machine.
-
-### Prerequisites
-
-* Docker and Docker Compose installed.
-
-* A valid **Gemini API Key** (or an equivalent LLM API Key, depending on the implementation in `pipeline.py`).
-
-### 1. Build and Run Containers
-
-This command builds the application image, installing all required Python dependencies (including the `requests` library for the LLM API calls), and starts both the FastAPI and MongoDB containers in the background.
-
-### 2. Execute NLP Query API request
+### 1. Install MongoDB Community Edition
 ```bash
-curl http://localhost:8080/api/query -X POST -H "Content-Type: application/json" -d '{"query": "Which event type takes the longest on average?", "session_id": "llm_test_session"}'
+brew tap mongodb/brew
+brew install mongodb-community@7.0
+brew services start mongodb-community@7.0
+```
+### 2. Set up Python Virtual Environment
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+### 3. Install Python Dependencies
+```bash
+pip install pymongo openai langchain
+```
+### 4. Load Sample Data
+```bash
+python load_data.py
+```
+### 5. Set OpenAI API Key Environment Variable
+```bash
+export OPENAI_API_KEY="your_openai_api_key_here"
+```
+### 6. Run the Conversational Analytics System
+```bash
+python main.py
+```
+### 7. Execute sample Query API request
+```bash
+curl -X POST "http://localhost:8000/api/query" \
+-H "Content-Type: application/json" \
+-d '{
+  "query": "Show me all pipeline events since two weeks ago"
+}'
 ```
 to get the JSON response like
 ```bash
-{"query_text":"Which event type takes the longest on average?","summary":"The aggregation pipeline analysis reveals that the \"Code Review / Approval\" event type has the longest average duration, recorded at 3,482.5 seconds. This was determined by grouping event types, calculating their average durations, sorting them in descending order, and selecting the top result.","pipeline_explanation":"This aggregation pipeline groups the events by 'event_type' to calculate the average duration (in seconds) for each event type using $avg. It then sorts the results in descending order based on the average duration and limits the output to the top result, which indicates the event type that takes the longest on average.","mongodb_pipeline":[{"$group":{"_id":"$event_type","average_duration":{"$avg":"$duration_seconds"}}},{"$sort":{"average_duration":-1}},{"$limit":1}],"results":[{"_id":"Code Review / Approval","average_duration":3482.5}]}%
+{"results":[{"_id":"68d896045fb8dcac2fb48c6d","event_type":"Pull Request Created","description":"Developer raises a pull request (merge request) for code review.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c6e","event_type":"Code Review / Approval","description":"Pull request undergoes code review and approval process including security and policy checks.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c6f","event_type":"Pipeline Created","description":"Pipeline triggered on pull request creation/update to run CI jobs.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c70","event_type":"Pipeline Started","description":"CI pipeline execution starts with build and test jobs.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c71","event_type":"Build Stage Started","description":"Build jobs compiling code and creating artifacts begin.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c72","event_type":"SonarQube Code Quality Scan Started","description":"Automated SonarQube scan analyzes code quality as a gate in CI pipeline.","source":"SonarQube/GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c73","event_type":"SonarQube Code Quality Scan Completed","description":"SonarQube analysis completes; quality gate passed/failed determines pipeline continuation.","source":"SonarQube/GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c74","event_type":"SAST Security Scan Started","description":"Static Application Security Testing scan to detect code vulnerabilities begins.","source":"Security Tool","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c75","event_type":"SAST Security Scan Completed","description":"SAST scan completes; security gate validation results impact progression.","source":"Security Tool","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c76","event_type":"SCA Security Scan Started","description":"Software Composition Analysis begins to look for insecure dependencies and license risks.","source":"Security Tool","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c77","event_type":"SCA Security Scan Completed","description":"SCA scan completes; security gate validation results impact progression.","source":"Security Tool","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c78","event_type":"Security & Risk Control Gate Check Started","description":"Automated or manual security and compliance gate checks start (e.g., secrets scanning, threat modeling).","source":"Security Tools/Policies","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c79","event_type":"Security & Risk Control Gate Passed","description":"Security and compliance gates passed; pipeline allowed to continue.","source":"Security Tools","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7a","event_type":"Security & Risk Control Gate Failed","description":"A gate failure triggers pipeline halt, manual review, or remediation steps.","source":"Security Tools","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7b","event_type":"Artifact Validation Started","description":"Validation of artifact signatures, integrity, and compliance begins as a gate before deployment.","source":"CI/CD system","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7c","event_type":"Artifact Validation Passed","description":"Validation successful; artifact cleared for deployment.","source":"CI/CD system","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7d","event_type":"Artifact Validation Failed","description":"Validation failure blocks progression to deployment.","source":"CI/CD system","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7e","event_type":"Pipeline Finished","description":"CI pipeline completes successfully or fails on pull request.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c7f","event_type":"Merge Completed","description":"Pull request merged into main branch after passing all CI and security gates.","source":"GitLab","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c80","event_type":"CD Pipeline Started","description":"Harness CD pipeline starts deployment process to non-prod environment.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c81","event_type":"Deployment Stage Started","description":"Deployment stage to staging, QA, or testing environment begins.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c82","event_type":"Deployment Stage Finished","description":"Deployment stage completes successfully or fails.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c83","event_type":"Manual Approval Requested","description":"Manual approval for production deployment triggered as security control.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c84","event_type":"Manual Approval Given","description":"Manual approval granted after review of security/risk posture.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c85","event_type":"Manual Approval Denied","description":"Manual approval denied; pipeline paused or aborted due to security concerns.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c86","event_type":"Production Deployment Started","description":"Production deployment begins after passing all security and quality gates.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c87","event_type":"Production Deployment Finished","description":"Production deployment completes successfully or rollback initiated on failure.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c88","event_type":"Rollback Initiated","description":"Rollback initiated due to failed deployment or security incidents detected post-deployment.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c89","event_type":"Rollback Finished","description":"Rollback completes to last known good state.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"},{"_id":"68d896045fb8dcac2fb48c8a","event_type":"Service Monitoring Started","description":"Monitoring of deployed app instances for security incidents, anomalies, and performance starts.","source":"Harness","event_timestamp":"2025-09-27T18:57:24.978000"}],"explanation":"This pipeline filters the events from the last two weeks based on the event_timestamp, ensuring only valid event documents are included and limits the results to 1000."}%
 ```
+
+---
+
+## Example Use Cases
+
+### Query 1: CICD Pipeline Success Rates
+
+    Query: "Show successful builds in last 7 days by branch"
+
+    Generated Pipeline: Filters build events, groups by branch, counts successes
+  ```bash
+  Pipeline: { "$match": { "eventType": "build-completed", "status": "success" } } { "$group": { "_id": "$branch", "count": { "$sum": 1 } } }
+  ```
+    Output: main branch → 25 builds | develop → 15 builds
+
+### Query 2: Build Durations for Failed Builds
+
+    Input: Average build duration for failed builds triggered by user jdoe last month
+    
+    Generated Pipeline: Filters by status, user, and timeframe, averages duration
+    
+    Output: Concise statistic highlighting bottlenecks or performance issues
+
 ---
 
 ## Project Structure (uses sample cicd mongodb)
 ```bash
 /
-├── Dockerfile                  # Defines the Python environment and application container build
-├── docker-compose.yml          # Defines the 'app' and 'mongo' services, volumes, and ports
-├── requirements.txt            # Python dependencies (fastapi, pymongo, requests, etc.)
-├── load_data.py                # Script to populate the MongoDB with sample CI/CD data
-├── README.md                   # Project documentation (Anviksha Analytics)
-├── index.html                  # Single-file web dashboard (Frontend UI)
-└── cicd_api/                   # FastAPI application package
-    ├── __init__.py
-    ├── main.py                 # Core API setup and routing (FastAPI entry point)
-    └── pipeline.py             # LLM logic for converting Natural Language to MongoDB pipeline
+├── main.py                 # Core conversational agent and query processing logic
+├── load_data.py            # Sample data insertion scripts for MongoDB
+├── setup.sh                # Automated environment setup bash script
+├── cicd_api/               # Modular CICD analytics package
+│   ├── __init__.py
+│   ├── api.py              # API interfaces for CICD analytics
+│   ├── events_handler.py   # Event processing for pipeline event documents
+│   ├── pipeline_generator.py # MongoDB pipeline builders for CICD queries
+│   ├── summaries.py        # Business summary and explanation generation
+│   └── utils.py            # Helper utilities and validation functions
+├── README.md               # This documentation file
 ```
 ---
 
 ## Technology Stack
 
-* **AI & NLP:** **Google Gemini** (Large Language Model for Natural Language to Query translation).
-* **Backend API:** **Python** (FastAPI) and **Uvicorn** (ASGI server).
-* **Database:** **MongoDB** (Containerized) leveraging the **MongoDB Aggregation Framework**.
-* **Frontend UI:** **HTML**, **JavaScript**, and **Tailwind CSS** for a responsive web dashboard.
-* **Containerization:** **Docker** and **Docker Compose** for local deployment and service orchestration.
-
----
-
-## 🧱 Architecture
-
-The system is built on a containerized microservices architecture:
-
-| Component | Technology | Role | 
- | ----- | ----- | ----- | 
-| **Frontend** | HTML/Tailwind CSS/JS | Simple, responsive web dashboard for query input and result display. | 
-| **API (`app` service)** | Python, FastAPI | Serves the `/api/query` endpoint, handles the LLM translation, and connects to MongoDB. | 
-| **LLM** | Google Gemini (via API) | Converts user text into MongoDB Aggregation Pipeline JSON. | 
-| **Database (`mongo` service)** | MongoDB | Stores the raw CI/CD event data. | 
+* AI & NLP: OpenAI GPT-4o Mini, MCP Toolbox concepts
+* Database: MongoDB Atlas & Aggregation Framework
+* Programming Language: Python 3.10+ with PyMongo and OpenAI SDK
+* Deployment: Kubernetes, Istio mTLS, HashiCorp Vault for security
+* Observability: OpenTelemetry, Prometheus, Grafana
 
 ---
 

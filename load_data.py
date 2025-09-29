@@ -1,94 +1,112 @@
-import pymongo
-from datetime import datetime, timedelta
 import os
-from typing import List, Dict, Any
+import random
+from datetime import datetime, timedelta
+from pymongo import MongoClient
 
-# Use environment variable for the connection URI, defaulting to the Docker service name
-# This allows the script to connect to the MongoDB container when run via docker exec.
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://mongodb_cicd:27017/")
-DB_NAME = "cicd_db"
+# --- Configuration ---
+# Use the service name defined in docker-compose for the host
+MONGO_HOST = os.getenv("MONGO_HOST", "mongodb_cicd")
+MONGO_PORT = os.getenv("MONGO_PORT", "27017")
+MONGO_URI = f"mongodb://{MONGO_HOST}:{MONGO_PORT}/"
+DATABASE_NAME = "cicd_db"
 COLLECTION_NAME = "cdPipelineEvents"
 
-# Define the set of distinct events, split across two projects
-EVENT_RECORDS_BASE = [
-    # Project Alpha Events
-    {"event_type": "Pull Request Created", "description": "Developer raises a pull request for code review.", "source": "GitLab", "project": "Project Alpha"},
-    {"event_type": "Code Review / Approval", "description": "Pull request undergoes code review and approval process.", "source": "GitLab", "project": "Project Alpha"},
-    {"event_type": "Pipeline Started", "description": "CI pipeline execution starts with build and test jobs.", "source": "GitLab", "project": "Project Alpha"},
-    {"event_type": "SonarQube Scan Completed", "description": "SonarQube analysis completes; quality gate passed.", "source": "SonarQube", "project": "Project Alpha"},
-    {"event_type": "Production Deployment Started", "description": "Deployment begins after passing all gates.", "source": "Harness", "project": "Project Alpha"},
-    {"event_type": "Production Deployment Finished", "description": "Production deployment completes successfully.", "source": "Harness", "project": "Project Alpha"},
-    
-    # Project Beta Events (focused on stability/rollbacks)
-    {"event_type": "Pull Request Created", "description": "Developer raises a pull request for code review.", "source": "GitLab", "project": "Project Beta"},
-    {"event_type": "Pipeline Started", "description": "CI pipeline execution starts with build and test jobs.", "source": "GitLab", "project": "Project Beta"},
-    {"event_type": "Production Deployment Started", "description": "Deployment begins after passing all gates.", "source": "Harness", "project": "Project Beta"},
-    {"event_type": "Rollback Initiated", "description": "Rollback initiated due to a failed deployment.", "source": "Harness", "project": "Project Beta"},
-    {"event_type": "Rollback Finished", "description": "Rollback completes to last known good state.", "source": "Harness", "project": "Project Beta"},
-]
+# --- Data Generation Helper ---
 
+def generate_events(start_date: datetime, count: int) -> list:
+    """Generates a list of realistic CI/CD events with numerical durations."""
+    events = []
+    
+    # Events that should have a duration (simulated seconds)
+    # Events with 0 duration will have their 'duration_seconds' field set to 0.
+    event_types = [
+        ("Pull Request Created", 0),
+        ("Code Review / Approval", 3600), # 1 hour
+        ("SonarQube Code Quality Scan Started", 0),
+        ("SonarQube Code Quality Scan Completed", 120), # 2 mins
+        ("Build Stage Started", 0),
+        ("Unit Tests Completed", 60), # 1 min
+        ("Integration Tests Completed", 300), # 5 mins
+        ("Vulnerability Scan Started", 0),
+        ("Vulnerability Scan Failed", 0),
+        ("SAST Security Scan Started", 0),
+        ("SAST Security Scan Completed", 900), # 15 mins (Longest event)
+        ("Artifact Published (Container)", 30), # 30 seconds
+        ("Pre-Prod Deployment Started", 0),
+        ("Manual Approval Required", 0),
+        ("Manual Approval Denied", 0),
+        ("Production Deployment Started", 0),
+        ("Production Deployment Finished", 180), # 3 mins
+        ("Service Monitoring Started", 0),
+        ("Rollback Initiated", 0),
+        ("Rollback Finished", 150), # 2.5 mins
+    ]
+    
+    users = ["John Smith", "Jane Doe", "SystemUser-CI", "DeveloperX"]
+    sources = ["GitLab", "Jenkins", "Security Tool", "Harness"]
 
-def generate_time_series_data() -> List[Dict[str, Any]]:
-    """Generates 10 full cycles of data with realistic, staggered timestamps."""
-    full_data = []
-    
-    # Start the first pipeline cycle 10 hours ago
-    start_time = datetime.now() - timedelta(hours=10)
-    
-    # Create 10 full pipeline cycles (5 for Alpha, 5 for Beta, interleaved)
-    for i in range(10): 
-        # Determine the project for this cycle
-        project_name = "Project Alpha" if i % 2 == 0 else "Project Beta"
+    current_date = start_date
+    for _ in range(count):
+        event_type, base_duration = random.choice(event_types)
         
-        # Determine the base events for this project
-        project_events = [e for e in EVENT_RECORDS_BASE if e["project"] == project_name]
-
-        # 1 hour between each full cycle
-        current_time = start_time + timedelta(minutes=i*60) 
+        # Determine the duration, adding some random noise
+        duration = 0 # Default to 0 seconds (FIXED: was None)
+        if base_duration > 0:
+            # Add/subtract up to 50% of the base duration for variation
+            variation = random.randint(-int(base_duration * 0.5), int(base_duration * 0.5))
+            duration = max(1, base_duration + variation)
         
-        # Simulate an event sequence over 10-20 minutes
-        for j, base_event in enumerate(project_events):
-            event = base_event.copy()
-            
-            # Stagger time between events within a cycle (1.5 to 3 minutes)
-            time_offset = timedelta(seconds=(j * 90) + (i % 5) * 20) 
-            event_time = current_time + time_offset
-            
-            event["event_timestamp"] = event_time
-            
-            # Add a unique 'pipeline_run_id' for each cycle
-            event["pipeline_run_id"] = f"{project_name.replace(' ', '')}_RUN_{i+1:02d}"
-            
-            full_data.append(event)
-            
-    return full_data
+        current_date += timedelta(minutes=random.randint(5, 60)) # Space events out
 
+        event = {
+            "event_type": event_type,
+            "event_timestamp": current_date,
+            "user": random.choice(users),
+            "source": random.choice(sources),
+            "duration_seconds": duration, # Now guaranteed to be a number (0 or positive)
+            "pipeline_id": f"pipeline-{random.randint(100, 105)}",
+            "metadata": {
+                "branch": "main" if "Prod" in event_type else "feature-branch",
+                "environment": "prod" if "Prod" in event_type else "dev",
+            }
+        }
+        events.append(event)
+        
+    return events
+
+# --- Main Execution ---
 
 def load_data():
-    """Connects to Mongo and loads the generated data."""
-    print(f"Attempting to connect to MongoDB at: {MONGO_URI}")
-    
+    """Initializes MongoDB connection and loads sample data."""
     try:
-        client = pymongo.MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-        
-        # The ismaster command is a lightweight way to confirm the connection (within the timeout)
-        client.admin.command('ismaster')
-        print("MongoDB connection verified.")
-        
-        db = client[DB_NAME]
+        # Connect to MongoDB
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        client.admin.command('ping') 
+        db = client[DATABASE_NAME]
         collection = db[COLLECTION_NAME]
+
+        # 1. Drop the existing collection (for clean reload)
+        collection.drop()
+        print(f"Dropped existing collection: {COLLECTION_NAME}")
+
+        # 2. Generate and insert new data
+        start_time = datetime.now() - timedelta(days=7)
+        new_events = generate_events(start_time, 100)
         
-        # Clear old data
-        collection.delete_many({})
+        insert_result = collection.insert_many(new_events)
+        print(f"Successfully inserted {len(insert_result.inserted_ids)} new documents into {COLLECTION_NAME}.")
         
-        # Generate and insert new data
-        event_records = generate_time_series_data()
-        collection.insert_many(event_records)
+        # 3. Create indices for better performance on common query fields
+        collection.create_index("event_type")
+        collection.create_index("event_timestamp")
+        collection.create_index("user")
         
-        print(f"SUCCESS: Loaded {len(event_records)} CICD event records into {DB_NAME}.{COLLECTION_NAME}")
-        
+        client.close()
+
     except Exception as e:
-        print(f"ERROR: Failed to load data. Ensure MongoDB is running and accessible via URI: {MONGO_URI}. Details: {e}")
+        print(f"Error loading data into MongoDB: {e}")
 
 if __name__ == "__main__":
+    # Ensure the script runs when executed directly by docker-compose run
     load_data()
+
