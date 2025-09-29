@@ -4,6 +4,7 @@ pydantic
 langchain
 langgraph
 pymongo
-openai
+python-multipart
+python-dateutil
 dateparser
-python-dotenv
+openai
