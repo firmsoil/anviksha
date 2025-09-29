@@ -5,7 +5,7 @@
 ![OpenAI](https://img.shields.io/badge/AI-OpenAI%20GPT--4o-orange)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Transform your software delivery data/events into actionable business insights with natural language queries, powered by OpenAI LLMs and MongoDB aggregation frameworks.
+Transform your software delivery data/events into actionable business insights with natural language queries powered by Agentic AI LLMs and MongoDB aggregation frameworks.
 
 ---
 
