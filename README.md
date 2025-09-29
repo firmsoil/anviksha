@@ -141,11 +141,24 @@ to get the JSON response like
 
 ## Technology Stack
 
-* AI & NLP: OpenAI GPT-4o Mini, MCP Toolbox concepts
-* Database: MongoDB Atlas & Aggregation Framework
-* Programming Language: Python 3.10+ with PyMongo and OpenAI SDK
-* Deployment: Kubernetes, Istio mTLS, HashiCorp Vault for security
-* Observability: OpenTelemetry, Prometheus, Grafana
+This stack is chosen to ensure enterprise-grade security, scalability, and operational insight, leveraging best-in-class tools for both AI and infrastructure management.
+
+| Category      | Core Technologies      | Function / Purpose |
+|---------------|------------------------|--------------------|
+| **AI & NLP**  | OpenAI GPT-4o Mini     | The primary LLM for data analysis, intelligent summarization, and generating actionable insights from complex data streams. |
+|               | MCP Toolbox Concepts   | Used for Model Confidence Prediction and governance, improving interpretability and trustworthiness of LLM outputs for business decisions. |
+| **Database**  | MongoDB Atlas          | Managed, highly available, and scalable cloud database for storing application data, user profiles, and raw CI/CD event logs. |
+|               | Aggregation Framework  | Efficient server-side data preparation and transformation before passing data to the LLM for analysis. |
+| **Programming** | Python 3.10+         | Core language for backend application and data pipeline logic. |
+|               | PyMongo                | Official driver for reliable MongoDB Atlas connectivity and interaction. |
+|               | OpenAI SDK             | Handles LLM calls, enforces JSON schema outputs, manages API key rotation and rate limiting. |
+| **Deployment** | Kubernetes (GKE)      | Container orchestration with automated scaling, self-healing, and high availability for the FastAPI microservice. |
+|               | Istio mTLS             | Ensures mutual TLS encryption for internal service traffic, enforcing Zero Trust security. |
+|               | HashiCorp Vault        | Secure storage and dynamic injection of sensitive environment variables (API keys, DB credentials, tokens). |
+| **Observability** | OpenTelemetry      | Vendor-agnostic framework for collecting metrics, logs, and distributed traces. |
+|               | Prometheus             | Time-series database for storage and querying of performance and resource metrics. |
+|               | Grafana                | Real-time dashboards for monitoring health, alerts, performance trends, and LLM usage costs. |
+
 
 ---
 
