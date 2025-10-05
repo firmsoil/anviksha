@@ -79,9 +79,10 @@ Create the .env file: In the root of the anviksha-analytics directory, create a 
 ```
 ⚠️ IMPORTANT: Replace "YOUR_API_KEY_HERE" with your actual Gemini API Key. The other variables are defaults for the Docker network and should match your docker-compose.yml.
 
-## Step 4: With Docker Desktop running and the .env file configured, you can launch the entire stack: Run Containers with Docker Compose. Build the FastAPI image and start both the FastAPI service and MongoDB container
+## Step 4: Build the FastAPI image and start both the FastAPI service and MongoDB container
 
 ```bash
+    # With Docker Desktop running and the .env file configured, you can launch the entire stack: Run Containers with Docker Compose.
     docker-compose up --build -d
 ```
 
