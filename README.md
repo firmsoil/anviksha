@@ -61,11 +61,12 @@ This system provides a conversational AI interface that enables users to query M
     cd anviksha
 ```
 ## Step 3: Configure Environment Variables
-```bash
-    The project requires a .env file to securely manage secrets, most importantly the Gemini API Key and MongoDB credentials.
-    Obtain Your Gemini API Key: Ensure you have your key ready.
-    Create the .env file: In the root of the anviksha-analytics directory, create a new file named .env and populate it with the following content.
 
+The project requires a .env file to securely manage secrets, most importantly the Gemini API Key and MongoDB credentials. 
+Obtain Your Gemini API Key: Ensure you have your key ready. 
+Create the .env file: In the root of the anviksha-analytics directory, create a new file named .env and populate it with the following content.
+
+```bash
     # --- Gemini API Key ---
     GEMINI_API_KEY="YOUR_API_KEY_HERE"
 
@@ -75,38 +76,35 @@ This system provides a conversational AI interface that enables users to query M
     MONGO_DATABASE=cicd_events
     MONGO_USERNAME=admin
     MONGO_PASSWORD=secretpassword
+```
+⚠️ IMPORTANT: Replace "YOUR_API_KEY_HERE" with your actual Gemini API Key. The other variables are defaults for the Docker network and should   
+match your docker-compose.yml.
 
-    ⚠️ IMPORTANT: Replace "YOUR_API_KEY_HERE" with your actual Gemini API Key. The other variables are defaults for the Docker network and should   
-    match your docker-compose.yml.
-```
-## Step 4: Run Containers with Docker Compose
-```bash
-    With Docker Desktop running and the .env file configured, you can launch the entire stack:
-```
-## Build the FastAPI image and start both the FastAPI service and MongoDB container
+## Step 4: With Docker Desktop running and the .env file configured, you can launch the entire stack: Run Containers with Docker Compose. Build the FastAPI image and start both the FastAPI service and MongoDB container
+
 ```bash
     docker-compose up --build -d
 ```
 
 ## Step 5: Load Initial Sample Data
-```bash
-    The load_data.py script needs to run once to seed your MongoDB instance. We will run this script inside the newly built Docker container to 
-    ensure it has the correct dependencies and network access.
+    
+The load_data.py script needs to run once to seed your MongoDB instance. We will run this script inside the newly built Docker container to 
+ensure it has the correct dependencies and network access.
 
+```bash
     # Execute the load_data.py script inside the 'anviksha-api' service container
     docker-compose exec app python load_data.py
 ```
 
 ## Step 6: Verification
+
+Your system should now be fully operational. Check Container Status:
+
 ```bash    
-    Your system should now be fully operational. Check Container Status:
-
     docker-compose ps
-    
-    Both the anviksha-mongo and anviksha-api services should show their status as Up.
-    
 ```
-
+Both the anviksha-mongo and anviksha-api services should show their status as Up.
+    
 ### 7. Execute sample Query API request
 ```bash
 curl http://localhost:8080/api/query -X POST -H "Content-Type: application/json" -d '{"query": "Which event type takes the longest on average?", "session_id": "llm_test_session"}'
