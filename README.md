@@ -62,20 +62,11 @@ This system provides a conversational AI interface that enables users to query M
 ```
 ## Step 3: Configure Environment Variables
 
-The project requires a .env file to securely manage secrets, most importantly the Gemini API Key and MongoDB credentials. 
-Obtain Your Gemini API Key: Ensure you have your key ready. 
-Create the .env file: In the root of the anviksha-analytics directory, create a new file named .env and populate it with the following content.
+The application requires the OPENAI_API_KEY to be passed to the Docker container. We recommend using a .env file or exporting the variable in your terminal session.
 
 ```bash
-    # --- Gemini API Key ---
-    GEMINI_API_KEY="YOUR_API_KEY_HERE"
-
-    # --- MongoDB Configuration (used by FastAPI service) ---
-    MONGO_HOST=anviksha-mongo
-    MONGO_PORT=27017
-    MONGO_DATABASE=cicd_events
-    MONGO_USERNAME=admin
-    MONGO_PASSWORD=secretpassword
+    # .env
+    OPENAI_API_KEY="sk-..."
 ```
 ⚠️ IMPORTANT: Replace "YOUR_API_KEY_HERE" with your actual Gemini API Key. The other variables are defaults for the Docker network and should match your docker-compose.yml.
 
