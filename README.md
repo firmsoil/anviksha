@@ -94,7 +94,7 @@ This system provides a conversational AI interface that enables users to query M
     ensure it has the correct dependencies and network access.
 
     # Execute the load_data.py script inside the 'anviksha-api' service container
-    docker-compose run --rm anviksha-api python load_data.py
+    docker-compose exec app python load_data.py
 ```
 
 ## Step 6: Verification
@@ -109,7 +109,7 @@ This system provides a conversational AI interface that enables users to query M
 
 ### 7. Execute sample Query API request
 ```bash
-curl http://192.168.1.77:8080/api/query -X POST -H "Content-Type: application/json" -d '{"query": "Which event type takes the longest on average?", "session_id": "llm_test_session"}'
+curl http://localhost:8080/api/query -X POST -H "Content-Type: application/json" -d '{"query": "Which event type takes the longest on average?", "session_id": "llm_test_session"}'
 ```
 to get the JSON response like
 ```bash
