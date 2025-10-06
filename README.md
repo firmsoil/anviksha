@@ -40,13 +40,12 @@ This system provides a conversational AI interface that enables users to query M
 - **Automated Testing**: Comprehensive test suite with `test_prototype.sh` for validation
 - **RESTful API**: FastAPI-based endpoints with interactive documentation at `/api/docs`
 - **Dockerized Deployment**: Complete containerized stack with MongoDB and FastAPI services
-- **Sample Data**: Pre-loaded CI/CD pipeline events for immediate testing and demonstration
+- **Sample Data**: Pre-loaded CICD pipeline events for immediate testing and demonstration
 - **Modular Architecture**: Extensible design for enterprise-grade deployment and customization  
 
 ---
 
 ## Installation & Local Setup (macOS)
-
 
 ### Step 1: Install Prerequisites
 ```bash
@@ -81,7 +80,7 @@ The application requires the OPENAI_API_KEY to be passed to the Docker container
 
 ## Step 5: Load Initial Sample Data
     
-The load_data.py script needs to run once to seed your MongoDB instance with sample CI/CD events.
+The load_data.py script needs to run once to seed your MongoDB instance with sample CICD events.
 
 ```bash
     # Execute the load_data.py script inside the FastAPI container
@@ -98,12 +97,6 @@ Your system should now be fully operational. Check Container Status:
 Both the `mongodb_cicd` and `fastapi_analytics` services should show their status as Up.
 
 ## Step 7: Test the Application
-
-### Quick Demo (Interactive)
-```bash
-    # Run the interactive demo with pretty-printed output
-    ./quick_demo.sh
-```
 
 ### Automated Tests
 ```bash
@@ -128,7 +121,6 @@ Visit `http://localhost:8080/api/docs` for interactive API documentation.
 ```bash
 curl http://localhost:8080/api/health
 ```
-
 ---
 
 ## Current Capabilities & Demo Scripts
@@ -150,7 +142,7 @@ The `test_prototype.sh` script runs comprehensive tests to validate:
 - Result formatting and summarization
 
 ### 📊 Sample Data
-The system comes pre-loaded with 100 sample CI/CD pipeline events including:
+The system comes pre-loaded with 100 sample CICD pipeline events including:
 
 - **Event Types**: Build stages, security scans, deployments, approvals
 - **Users**: John Smith, Jane Doe, DeveloperX, SystemUser-CI
@@ -196,12 +188,12 @@ This stack is designed for modern conversational analytics, combining AI-powered
 | **Backend**   | FastAPI                | Modern, fast web framework for building RESTful APIs with automatic OpenAPI documentation. |
 |               | Uvicorn                | High-performance ASGI server for running FastAPI applications in production. |
 |               | Pydantic               | Data validation and serialization using Python type annotations for request/response models. |
-| **Database**  | MongoDB 8.0+          | Document database for storing CI/CD pipeline events with flexible schema and rich querying. |
+| **Database**  | MongoDB 8.0+          | Document database for storing CICD pipeline events with flexible schema and rich querying. |
 |               | PyMongo                | Official Python driver for MongoDB connectivity and aggregation pipeline execution. |
 |               | Aggregation Framework  | Server-side data processing for complex analytics and real-time pipeline generation. |
 | **Programming** | Python 3.11+         | Core language for backend application, AI integration, and data processing logic. |
 |               | Python-multipart       | Support for file uploads and form data processing in FastAPI endpoints. |
-|               | Python-dateutil        | Advanced date and time parsing for handling temporal data in CI/CD events. |
+|               | Python-dateutil        | Advanced date and time parsing for handling temporal data in CICD events. |
 |               | Dateparser             | Natural language date parsing for user-friendly temporal query processing. |
 | **Deployment** | Docker                | Containerization for consistent deployment across development and production environments. |
 |               | Docker Compose         | Multi-container orchestration for MongoDB and FastAPI services with networking. |
@@ -263,7 +255,7 @@ This stack is designed for modern conversational analytics, combining AI-powered
 
 ### Data Processing & Utilities
 - **Python-dateutil. (2024). Python-dateutil Documentation.**  
-  Advanced date and time parsing for handling temporal data in CI/CD events and sample data generation.
+  Advanced date and time parsing for handling temporal data in CICD events and sample data generation.
 
 - **Dateparser. (2024). Dateparser Documentation.**  
   Natural language date parsing for user-friendly temporal query processing in conversational analytics.
@@ -273,7 +265,7 @@ This stack is designed for modern conversational analytics, combining AI-powered
 
 ### Sample Data & Testing
 - **MongoDB, Inc. (2024). MongoDB Sample Data Patterns.**  
-  Influences the sample CI/CD event data structure and generation patterns for realistic testing scenarios.
+  Influences the sample CICD event data structure and generation patterns for realistic testing scenarios.
 
 - **FastAPI. (2024). FastAPI Testing Documentation.**  
   Testing patterns and validation approaches for API endpoint functionality verification.
