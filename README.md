@@ -124,6 +124,11 @@ Both the `mongodb_cicd` and `fastapi_analytics` services should show their statu
 ### API Documentation
 Visit `http://localhost:8080/api/docs` for interactive API documentation.
 
+### Health Check
+```bash
+curl http://localhost:8080/api/health
+```
+
 ---
 
 ## Current Capabilities & Demo Scripts
