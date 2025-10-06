@@ -33,13 +33,15 @@ This system provides a conversational AI interface that enables users to query M
 ---
 
 ## Key Features
-- Natural language query processing with multi-turn conversational refinement  
-- Dynamic translation to MongoDB aggregation pipelines with schema awareness  
-- Secure query execution with performance and safety guards (result limits, validation)  
-- Support for analytics on CICD pipeline events and operational software delivery metrics  
-- Integration with OpenAI GPT-4o models for language understanding and summarization  
-- Sample datasets and scripts provided for quick startup on local or cloud environments  
-- Modular architecture designed for extensibility and enterprise-grade deployment  
+- **Natural Language Processing**: Convert plain English queries into MongoDB aggregation pipelines
+- **AI-Powered Analytics**: OpenAI GPT-4o integration for intelligent query understanding and result summarization
+- **Real-time Query Execution**: Dynamic pipeline generation with secure MongoDB execution
+- **Interactive Demos**: Pretty-printed output with `quick_demo.sh` for showcasing capabilities
+- **Automated Testing**: Comprehensive test suite with `test_prototype.sh` for validation
+- **RESTful API**: FastAPI-based endpoints with interactive documentation at `/api/docs`
+- **Dockerized Deployment**: Complete containerized stack with MongoDB and FastAPI services
+- **Sample Data**: Pre-loaded CI/CD pipeline events for immediate testing and demonstration
+- **Modular Architecture**: Extensible design for enterprise-grade deployment and customization  
 
 ---
 
@@ -68,22 +70,21 @@ The application requires the OPENAI_API_KEY to be passed to the Docker container
     # .env
     OPENAI_API_KEY="sk-..."
 ```
-⚠️ IMPORTANT: Replace "YOUR_API_KEY_HERE" with your actual Gemini API Key. The other variables are defaults for the Docker network and should match your docker-compose.yml.
+⚠️ IMPORTANT: Replace "sk-..." with your actual OpenAI API Key. The other variables are defaults for the Docker network and should match your docker-compose.yml.
 
-## Step 4: Build the FastAPI image and start both the FastAPI service and MongoDB container
+## Step 4: Build and Start the Application Stack
 
 ```bash
-    # With Docker Desktop running and the .env file configured, you can launch the entire stack: Run Containers with Docker Compose.
+    # With Docker Desktop running and the .env file configured, launch the entire stack
     docker-compose up --build -d
 ```
 
 ## Step 5: Load Initial Sample Data
     
-The load_data.py script needs to run once to seed your MongoDB instance. We will run this script inside the newly built Docker container to 
-ensure it has the correct dependencies and network access.
+The load_data.py script needs to run once to seed your MongoDB instance with sample CI/CD events.
 
 ```bash
-    # Execute the load_data.py script inside the 'anviksha-api' service container
+    # Execute the load_data.py script inside the FastAPI container
     docker-compose exec app python load_data.py
 ```
 
@@ -94,121 +95,182 @@ Your system should now be fully operational. Check Container Status:
 ```bash    
     docker-compose ps
 ```
-Both the anviksha-mongo and anviksha-api services should show their status as Up.
+Both the `mongodb_cicd` and `fastapi_analytics` services should show their status as Up.
+
+## Step 7: Test the Application
+
+### Quick Demo (Interactive)
+```bash
+    # Run the interactive demo with pretty-printed output
+    ./quick_demo.sh
+```
+
+### Automated Tests
+```bash
+    # Run the automated test suite
+    ./test_prototype.sh
+```
+
+### Manual API Testing
+```bash
+    # Health check
+    curl http://localhost:8080/api/health
     
-### 7. Execute sample Query API request
-```bash
-curl http://localhost:8080/api/query -X POST -H "Content-Type: application/json" -d '{"query": "Which event type takes the longest on average?", "session_id": "llm_test_session"}'
+    # Sample query
+    curl http://localhost:8080/api/query -X POST -H "Content-Type: application/json" \
+      -d '{"query": "Count all events by event type", "session_id": "test_session"}'
 ```
-to get the JSON response like
-```bash
-{"query_text":"Which event type takes the longest on average?","summary":"The aggregation pipeline analysis reveals that the \"Code Review / Approval\" event type has the longest average duration, recorded at 3,482.5 seconds. This was determined by grouping event types, calculating their average durations, sorting them in descending order, and selecting the top result.","pipeline_explanation":"This aggregation pipeline groups the events by 'event_type' to calculate the average duration (in seconds) for each event type using $avg. It then sorts the results in descending order based on the average duration and limits the output to the top result, which indicates the event type that takes the longest on average.","mongodb_pipeline":[{"$group":{"_id":"$event_type","average_duration":{"$avg":"$duration_seconds"}}},{"$sort":{"average_duration":-1}},{"$limit":1}],"results":[{"_id":"Code Review / Approval","average_duration":3482.5}]}%
-```
+
+### API Documentation
+Visit `http://localhost:8080/api/docs` for interactive API documentation.
 
 ---
 
-## Project Structure (uses mongodb)
+## Current Capabilities & Demo Scripts
+
+### 🚀 Quick Start Demo
+The `quick_demo.sh` script provides an interactive demonstration of the conversational analytics capabilities:
+
+- **Analytical Queries**: Count events by type, duration analysis, user activity patterns
+- **Semantic Queries**: Find events by user, filter by event characteristics  
+- **Hybrid Queries**: Complex analytics combining multiple data dimensions
+- **Pretty-Printed Output**: Formatted results with clear summaries and data highlights
+
+### 🧪 Automated Testing
+The `test_prototype.sh` script runs comprehensive tests to validate:
+
+- API endpoint functionality
+- MongoDB connectivity
+- Query processing accuracy
+- Result formatting and summarization
+
+### 📊 Sample Data
+The system comes pre-loaded with 100 sample CI/CD pipeline events including:
+
+- **Event Types**: Build stages, security scans, deployments, approvals
+- **Users**: John Smith, Jane Doe, DeveloperX, SystemUser-CI
+- **Sources**: GitLab, Jenkins, Security Tool, Harness
+- **Metrics**: Duration tracking, pipeline IDs, environment metadata
+
+---
+
+## Project Structure
 ```bash
 /
-├── main.py                 # Core conversational agent and query processing logic
+├── main.py                 # Legacy main entry point (deprecated)
 ├── load_data.py            # Sample data insertion scripts for MongoDB
 ├── setup.sh                # Automated environment setup bash script
-├── cicd_api/               # Modular CICD analytics package
+├── quick_demo.sh           # Interactive demo script with pretty-printed output
+├── test_prototype.sh       # Automated test suite for API endpoints
+├── cicd_api/               # FastAPI-based CICD analytics package
 │   ├── __init__.py
-│   ├── api.py              # API interfaces for CICD analytics
-│   ├── events_handler.py   # Event processing for pipeline event documents
-│   ├── pipeline_generator.py # MongoDB pipeline builders for CICD queries
-│   ├── summaries.py        # Business summary and explanation generation
-│   └── utils.py            # Helper utilities and validation functions
-├── README.md               # This documentation file
+│   ├── api_main.py         # FastAPI application with conversational query endpoints
+│   ├── db.py               # Database connection and management
+│   ├── models.py           # Pydantic models for request/response schemas
+│   └── pipeline.py          # LLM-powered pipeline generation and execution
+├── docker-compose.yml      # Docker orchestration configuration
+├── Dockerfile             # FastAPI application container definition
+├── requirements.txt       # Python dependencies
+├── .env                   # Environment variables (API keys, etc.)
+├── images/                # Project assets and screenshots
+│   └── Anviksha.png
+├── README.md              # This documentation file
+└── LICENSE                # MIT License
 ```
 ---
 
 ## Technology Stack
 
-This stack is chosen to ensure enterprise-grade security, scalability, and operational insight, leveraging best-in-class tools for both AI and infrastructure management.
+This stack is designed for modern conversational analytics, combining AI-powered natural language processing with robust data management and containerized deployment.
 
 | Category      | Core Technologies      | Function / Purpose |
 |---------------|------------------------|--------------------|
-| **AI & NLP**  | OpenAI GPT-4o Mini     | The primary LLM for data analysis, intelligent summarization, and generating actionable insights from complex data streams. |
-|               | MCP Toolbox Concepts   | Used for Model Confidence Prediction and governance, improving interpretability and trustworthiness of LLM outputs for business decisions. |
-| **Database**  | MongoDB Atlas          | Managed, highly available, and scalable cloud database for storing application data, user profiles, and raw CI/CD event logs. |
-|               | Aggregation Framework  | Efficient server-side data preparation and transformation before passing data to the LLM for analysis. |
-| **Programming** | Python 3.10+         | Core language for backend application and data pipeline logic. |
-|               | PyMongo                | Official driver for reliable MongoDB Atlas connectivity and interaction. |
-|               | OpenAI SDK             | Handles LLM calls, enforces JSON schema outputs, manages API key rotation and rate limiting. |
-| **Deployment** | Kubernetes (GKE)      | Container orchestration with automated scaling, self-healing, and high availability for the FastAPI microservice. |
-|               | Istio mTLS             | Ensures mutual TLS encryption for internal service traffic, enforcing Zero Trust security. |
-|               | HashiCorp Vault        | Secure storage and dynamic injection of sensitive environment variables (API keys, DB credentials, tokens). |
-| **Observability** | OpenTelemetry      | Vendor-agnostic framework for collecting metrics, logs, and distributed traces. |
-|               | Prometheus             | Time-series database for storage and querying of performance and resource metrics. |
-|               | Grafana                | Real-time dashboards for monitoring health, alerts, performance trends, and LLM usage costs. |
+| **AI & NLP**  | OpenAI GPT-4o Mini     | Primary LLM for natural language query understanding, MongoDB pipeline generation, and intelligent result summarization. |
+|               | LangChain              | Framework for building LLM applications with chain-of-thought reasoning and prompt management. |
+|               | LangGraph              | Advanced workflow orchestration for complex multi-step AI reasoning and data processing. |
+| **Backend**   | FastAPI                | Modern, fast web framework for building RESTful APIs with automatic OpenAPI documentation. |
+|               | Uvicorn                | High-performance ASGI server for running FastAPI applications in production. |
+|               | Pydantic               | Data validation and serialization using Python type annotations for request/response models. |
+| **Database**  | MongoDB 8.0+          | Document database for storing CI/CD pipeline events with flexible schema and rich querying. |
+|               | PyMongo                | Official Python driver for MongoDB connectivity and aggregation pipeline execution. |
+|               | Aggregation Framework  | Server-side data processing for complex analytics and real-time pipeline generation. |
+| **Programming** | Python 3.11+         | Core language for backend application, AI integration, and data processing logic. |
+|               | Python-multipart       | Support for file uploads and form data processing in FastAPI endpoints. |
+|               | Python-dateutil        | Advanced date and time parsing for handling temporal data in CI/CD events. |
+|               | Dateparser             | Natural language date parsing for user-friendly temporal query processing. |
+| **Deployment** | Docker                | Containerization for consistent deployment across development and production environments. |
+|               | Docker Compose         | Multi-container orchestration for MongoDB and FastAPI services with networking. |
+|               | Python 3.11-slim       | Lightweight base image for optimized container size and security. |
+| **Utilities** | Requests               | HTTP client library for external API integrations and service communication. |
 
 
 ---
 
 ## References 
 
+### Core Framework & Architecture
+- **FastAPI. (2024). FastAPI Documentation.**  
+  Foundation for the RESTful API architecture, providing automatic OpenAPI documentation and request/response validation.
+
+- **Pydantic. (2024). Pydantic Documentation.**  
+  Data validation and serialization framework for type-safe request/response schemas and MongoDB ObjectId handling.
+
+- **Uvicorn. (2024). Uvicorn ASGI Server.**  
+  High-performance ASGI server for running FastAPI applications in production environments.
+
+### AI & Natural Language Processing
+- **OpenAI. (2024). OpenAI API Documentation.**  
+  Core LLM integration for natural language query understanding, MongoDB pipeline generation, and intelligent result summarization.
+
+- **LangChain. (2024). LangChain Documentation.**  
+  Framework for building LLM applications with chain-of-thought reasoning and conversational query processing.
+
+- **LangGraph. (2024). LangGraph Documentation.**  
+  Advanced workflow orchestration for complex multi-step AI reasoning and data processing in analytics pipelines.
+
+### Database & Data Processing
 - **MongoDB, Inc. (2025). Simplify AI-Driven Data Connectivity With MongoDB and MCP Toolbox.**  
-  Provides reference architecture and real-world use cases guiding integration design; relevant to system modularity and data source abstraction
-  patterns.
+  [MongoDB MCP Toolbox Blog](https://www.mongodb.com/company/blog/innovation/simplify-ai-driven-data-connectivity-mcp-toolbox) - Provides reference architecture for AI-driven data connectivity using Model Context Protocol (MCP) servers, directly influencing conversational query processing and MongoDB integration patterns.
 
-- **Google. (2025). MongoDB | MCP Toolbox for Databases.**  
-  Documentation outlines connector schema and integration points mirrored in `main.py` tool and pipeline generation logic.
+- **MongoDB, Inc. (2024). MongoDB Aggregation Framework.**  
+  Directly informs the pipeline generation and execution logic for dynamic query processing and data transformation.
 
-- **Google Cloud. (2025). MongoDB Connector for Google Cloud Integration.**  
-  Correlates with infrastructure provisioning and integration validation activities covered in `setup.sh` and deployment configurations.
-  
-- **FlowHunt. (2025). MongoDB MCP Server - FlowHunt.**  
-  Example implementation of MCP server that inspired design of the backend microservices.
+- **PyMongo. (2024). PyMongo Documentation.**  
+  Official Python driver for MongoDB connectivity, connection management, and aggregation pipeline execution.
 
-- **Glama.ai. (2025). MongoDB MCP Server.**  
-  Demonstrates operational MCP MongoDB tooling pattern influencing our API endpoint and query executor logic.
-  
-- **MongoDB, Inc. (2025). MongoDB Atlas Architecture Center.**  
-  Correlates to data layer setup, Atlas cluster provisioning, and resilient storage accessed by the pipeline executor service in `main.py`.
+- **MongoDB, Inc. (2024). MongoDB Query for Date Range.**  
+  Influences correct BSON date filtering and temporal query processing in pipeline generation.
 
-- **MongoDB, Inc. (2024). MongoDB Architecture Guide.**  
-  Foundational for schema design and indexing decisions impacting query performance in aggregation pipeline generation functions in `main.py`.
+### Containerization & Deployment
+- **Docker, Inc. (2024). Docker Documentation.**  
+  Containerization strategy for consistent deployment across development and production environments.
 
-- **Google Cloud. (2022). Reference Architectures for MongoDB Atlas on Google Cloud.**  
-  Underpins deployment design using Kubernetes/OpenShift referenced in `setup.sh` and microservice orchestration around the conversational API.
+- **Docker Compose. (2024). Docker Compose Documentation.**  
+  Multi-container orchestration for MongoDB and FastAPI services with networking configuration.
 
-- **MongoDB, Inc. (2025). MongoDB Aggregation Framework.**  
-  Directly informs pipeline generation and execution logic in `main.py`’s `generate_pipeline()` and `execute_pipeline()` functions.
+### Data Processing & Utilities
+- **Python-dateutil. (2024). Python-dateutil Documentation.**  
+  Advanced date and time parsing for handling temporal data in CI/CD events and sample data generation.
 
-- **MongoDB, Inc. (2025). MongoDB Change Streams.**  
-  Relevant for real-time update handling and event-driven analytics components implied in the architecture appendix.
+- **Dateparser. (2024). Dateparser Documentation.**  
+  Natural language date parsing for user-friendly temporal query processing in conversational analytics.
 
-- **OpenAI. (2025). OpenAI API Documentation.**  
-  Integral to the AI orchestration logic invoking LLM completions within `main.py`, facilitating natural language to pipeline translation.
+- **Requests. (2024). Requests Documentation.**  
+  HTTP client library for external API integrations and service communication in FastAPI applications.
 
-- **Google Cloud. (2025). Google Vertex AI Documentation.**  
-  Supports the AI model serving and orchestration infrastructure described in the architecture.
+### Sample Data & Testing
+- **MongoDB, Inc. (2024). MongoDB Sample Data Patterns.**  
+  Influences the sample CI/CD event data structure and generation patterns for realistic testing scenarios.
 
-- **HashiCorp. (n.d.). Vault Kubernetes Integration.**  
-  Security reference for secret management and vault integration operations mentioned in the security appendix.
+- **FastAPI. (2024). FastAPI Testing Documentation.**  
+  Testing patterns and validation approaches for API endpoint functionality verification.
 
-- **Istio. (n.d.). Mutual TLS (mTLS) Overview.**  
-  Basis for securing service mesh communication, referenced in setup scripts and deployment practices (`setup.sh`).
-
-- **MongoDB, Inc. (2025). MongoDB Security Documentation.**  
-  Guides security best practices for API and database level controls seen in authentication and RBAC implementation context.
-
-- **Prometheus. (n.d.). Prometheus Monitoring System.**  
-  Used in observability for monitoring microservices and API telemetry as noted in system monitoring descriptions.
-
+### Academic & Research Foundations
 - **ACL Anthology. (2021). Hybrid NLP: Combining Rule-based and Machine Learning.**  
-  Academic grounding for the hybrid pipeline generation approach in `main.py`.
+  Academic grounding for the hybrid pipeline generation approach combining LLM reasoning with structured MongoDB queries.
 
-- **MongoDB, Inc. (2025). MongoDB Query for Date Range.**  
-  Influences correct BSON date filtering implemented in the pipeline generation function.
-
-- **OpenAI. (2025). OpenAI Summarization Example.**  
-  Supports the summarization feature post pipeline execution in `main.py`.
-
-- **MongoDB, Inc. (2025). Announcing the MongoDB MCP Server.**  
-  Key reference for multi-data source support and AI agent interaction capability, reflected in modular tool loading and extensibility in codebase.
+- **OpenAI. (2024). OpenAI Summarization Best Practices.**  
+  Supports the intelligent summarization feature for post-pipeline execution result interpretation.
 
 ---
 
