@@ -208,6 +208,13 @@ This stack is designed for modern conversational analytics, combining AI-powered
 
 ## References 
 
+### Academic & Research Foundations
+- **ACL Anthology. (2021). Hybrid NLP: Combining Rule-based and Machine Learning.**  
+  Academic grounding for the hybrid pipeline generation approach combining LLM reasoning with structured MongoDB queries.
+
+- **OpenAI. (2024). OpenAI Summarization Best Practices.**  
+  Supports the intelligent summarization feature for post-pipeline execution result interpretation.
+
 ### Core Framework & Architecture
 - **FastAPI. (2024). FastAPI Documentation.**  
   Foundation for the RESTful API architecture, providing automatic OpenAPI documentation and request/response validation.
@@ -218,19 +225,10 @@ This stack is designed for modern conversational analytics, combining AI-powered
 - **Uvicorn. (2024). Uvicorn ASGI Server.**  
   High-performance ASGI server for running FastAPI applications in production environments.
 
-### AI & Natural Language Processing
-- **OpenAI. (2024). OpenAI API Documentation.**  
-  Core LLM integration for natural language query understanding, MongoDB pipeline generation, and intelligent result summarization.
-
-- **LangChain. (2024). LangChain Documentation.**  
-  Framework for building LLM applications with chain-of-thought reasoning and conversational query processing.
-
-- **LangGraph. (2024). LangGraph Documentation.**  
-  Advanced workflow orchestration for complex multi-step AI reasoning and data processing in analytics pipelines.
-
 ### Database & Data Processing
 - **MongoDB, Inc. (2025). Simplify AI-Driven Data Connectivity With MongoDB and MCP Toolbox.**  
-  [MongoDB MCP Toolbox Blog](https://www.mongodb.com/company/blog/innovation/simplify-ai-driven-data-connectivity-mcp-toolbox) - Provides reference architecture for AI-driven data connectivity using Model Context Protocol (MCP) servers, directly influencing conversational query processing and MongoDB integration patterns.
+  [MongoDB MCP Toolbox Blog](https://www.mongodb.com/company/blog/innovation/simplify-ai-driven-data-connectivity-mcp-toolbox) - Provides reference   architecture for AI-driven data connectivity using Model Context Protocol (MCP) servers, directly influencing conversational query processing
+  and MongoDB integration patterns.
 
 - **MongoDB, Inc. (2024). MongoDB Aggregation Framework.**  
   Directly informs the pipeline generation and execution logic for dynamic query processing and data transformation.
@@ -240,6 +238,16 @@ This stack is designed for modern conversational analytics, combining AI-powered
 
 - **MongoDB, Inc. (2024). MongoDB Query for Date Range.**  
   Influences correct BSON date filtering and temporal query processing in pipeline generation.
+
+### AI & Natural Language Processing
+- **OpenAI. (2024). OpenAI API Documentation.**  
+  Core LLM integration for natural language query understanding, MongoDB pipeline generation, and intelligent result summarization.
+
+- **LangChain. (2024). LangChain Documentation.**  
+  Framework for building LLM applications with chain-of-thought reasoning and conversational query processing.
+
+- **LangGraph. (2024). LangGraph Documentation.**  
+  Advanced workflow orchestration for complex multi-step AI reasoning and data processing in analytics pipelines.
 
 ### Containerization & Deployment
 - **Docker, Inc. (2024). Docker Documentation.**  
@@ -264,13 +272,6 @@ This stack is designed for modern conversational analytics, combining AI-powered
 
 - **FastAPI. (2024). FastAPI Testing Documentation.**  
   Testing patterns and validation approaches for API endpoint functionality verification.
-
-### Academic & Research Foundations
-- **ACL Anthology. (2021). Hybrid NLP: Combining Rule-based and Machine Learning.**  
-  Academic grounding for the hybrid pipeline generation approach combining LLM reasoning with structured MongoDB queries.
-
-- **OpenAI. (2024). OpenAI Summarization Best Practices.**  
-  Supports the intelligent summarization feature for post-pipeline execution result interpretation.
 
 ---
 
