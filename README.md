@@ -107,6 +107,23 @@ to get the JSON response like
 
 ---
 
+## Alternatively run any demo script included in the repo to see the demo flow.
+
+Running the quick demo (quickdemo.sh)
+- Purpose
+  The repository includes a convenience script quickdemo.sh that runs a minimal demo flow (sets up any required environment, runs the app or a demo entrypoint, and prints summary output). This README documents how to run that quick demo.
+
+- Location
+  The script is expected at the repository root as `quickdemo.sh`.
+
+- Make the script executable (one-time)
+  chmod +x ./quickdemo.sh
+
+- Execute the script to see the demo!
+  ./quickdemo.sh
+
+---
+
 ## Project Structure (uses mongodb)
 ```bash
 /
