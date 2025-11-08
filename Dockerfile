@@ -1,21 +1,28 @@
-# Dockerfile
-# Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
+# Copy application code
 COPY . .
 
-# Expose the port the app runs on (standardizing on 8080)
-ENV PORT 8080
+# Create __init__.py if it doesn't exist (for module imports)
+RUN touch __init__.py
+
+# Expose port
 EXPOSE 8080
 
-# Run the application using Uvicorn, pointing to the 'app' object 
-# inside the 'api_main.py' module of the 'cicd_api' package.
-CMD ["uvicorn", "cicd_api.api_main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8080/api/health || exit 1
+
+# Run the application with proper module path
+CMD ["uvicorn", "api_main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]

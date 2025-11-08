@@ -1,12 +1,23 @@
-fastapi
-uvicorn[standard]
-pydantic
-langchain
-langgraph
-pymongo
-python-multipart
-python-dateutil
-dateparser
-openai
-requests
+# Core FastAPI dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
 
+# MongoDB
+pymongo==4.6.0
+
+# OpenAI - FIXED: Compatible version
+openai==1.12.0
+
+# HTTP client - FIXED: Compatible with openai
+httpx==0.26.0
+
+# Utilities
+python-dateutil==2.8.2
+dateparser==1.2.0
+
+# MCP Integration dependencies
+requests==2.31.0
+
+# Optional: For enhanced error handling
+python-json-logger==2.0.7
